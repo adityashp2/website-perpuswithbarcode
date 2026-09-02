@@ -1,18 +1,23 @@
-<?
-	include 'koneksi.php';
-	session_start();
-	/*$admin=$_POST['admin'];
-	if($admin!=''){
-		$select_admin=mysql_query("select * from admin where id = '$admin'");
-		$count=mysql_num_rows($select_admin);
-		if($count>0){
-			$row=mysql_fetch_array($select_admin);
-			if(session_is_registered($row[1]) && session_is_registered($row[2])){
-				session_destroy();
-				header("location:index.php");
-			}
-		}
-	}*/
-	session_destroy();
-	header("location:index.php");
-?>
+<?php
+require_once __DIR__ . '/koneksi.php';
+
+$_SESSION = [];
+unset($_SESSION['admin_id']);
+unset($_SESSION['username']);
+unset($_SESSION['type']);
+
+if (ini_get("session.use_cookies")) {
+    $params = session_get_cookie_params();
+    setcookie(session_name(), '', time() - 42000,
+        $params["path"], $params["domain"],
+        $params["secure"], $params["httponly"]
+    );
+}
+session_destroy();
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+set_flash('info', 'Anda telah berhasil keluar (logout) dari sistem.');
+header("Location: index.php?pg=beranda");
+exit();

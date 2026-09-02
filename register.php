@@ -1,85 +1,115 @@
-<html>
-<head>
-<title>Register</title>
-</head>
-<body>
-<div id="register">
-<table width="400" align="center" border="0" cellpadding="5" cellspacing="0" style="font-family:arial;color:black;font-size:12px;">
-<form method="post" action="exeregister.php" target="content" enctype="multipart/form-data">
-<tr valign="center">
-<td align="left">Username</td>
-<td align="center">:</td>
-<td ><input type="text" name="username"><? echo"**"?></td>
-</tr>
+<?php
+require_once __DIR__ . '/koneksi.php';
+$user = get_current_user_data();
+if ($user) {
+    echo "<script>window.location.href='index.php?pg=beranda&admin=" . urlencode($user['admin_id']) . "';</script>";
+    exit();
+}
+?>
+<div style="max-width: 680px; margin: 20px auto;">
+    <div class="card" style="padding: 32px; box-shadow: var(--shadow-lg);">
+        <div style="text-align: center; margin-bottom: 28px;">
+            <div style="width: 56px; height: 56px; background: var(--primary-light); color: var(--primary); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; font-size: 28px; margin: 0 auto 16px;">
+                <i class='bx bxs-user-plus'></i>
+            </div>
+            <h2 style="font-family: var(--font-heading); font-size: 22px; font-weight: 700; color: #0f172a;">Pendaftaran Anggota Baru</h2>
+            <p style="color: var(--text-muted); font-size: 13.5px; margin-top: 4px;">Daftar akun untuk meminjam buku dan mengakses layanan sirkulasi</p>
+        </div>
 
-<tr valign="center">
-<td align="left">Password</td>
-<td align="center">:</td>
-<td ><input name="password" type="password" value="" maxlength="8"><? echo"** max 8 katakter"?></td>
-</tr>
+        <form method="POST" action="exeregister.php" enctype="multipart/form-data">
+            <input type="hidden" name="tglentry" value="<?= date('Y-m-d') ?>">
+            
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="form-label">Username <span class="required">*</span></label>
+                    <input type="text" name="username" class="form-control" placeholder="Contoh: mhs_polinela" required>
+                    <div class="form-hint">Digunakan untuk masuk ke sistem</div>
+                </div>
 
-<tr valign="center">
-<td align="left">Nama</td>
-<td align="center">:</td>
-<td ><input type="text" name="name"></td>
-</tr>
+                <div class="form-group">
+                    <label class="form-label">Password <span class="required">*</span></label>
+                    <input type="password" name="password" class="form-control" maxlength="8" placeholder="Maks. 8 karakter" required>
+                    <div class="form-hint">Maksimal 8 karakter</div>
+                </div>
+            </div>
 
-<tr valign="center">
-<td align="left">Sex</td>
-<td align="center">:</td>
-<td >
-	<select name="sex">
-	<option value="L">L</option>
-	<option value="L">P</option>
-	</select>
-</td>
-</tr>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="form-label">Nama Lengkap <span class="required">*</span></label>
+                    <input type="text" name="name" class="form-control" placeholder="Nama lengkap siswa/anggota" required>
+                </div>
 
-<tr valign="center">
-<td align="left">Telepon</td>
-<td align="center">:</td>
-<td ><input type="text" name="telp"></td>
-</tr>
+                <div class="form-group">
+                    <label class="form-label">Jenis Kelamin <span class="required">*</span></label>
+                    <select name="sex" class="form-control" required>
+                        <option value="L">Laki-laki (L)</option>
+                        <option value="P">Perempuan (P)</option>
+                    </select>
+                </div>
+            </div>
 
-<tr valign="center">
-<td align="left">Alamat</td>
-<td align="center">:</td>
-<td ><input type="text" name="alamat"></td>
-</tr>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="form-label">No. Telepon / WhatsApp <span class="required">*</span></label>
+                    <input type="text" name="telp" class="form-control" placeholder="08xxxxxxxxxx" required>
+                </div>
 
-<tr valign="center">
-<td align="left">Email</td>
-<td align="center">:</td>
-<td ><input type="text" name="mail"></td>
-</tr>
+                <div class="form-group">
+                    <label class="form-label">Alamat Email <span class="required">*</span></label>
+                    <input type="email" name="mail" class="form-control" placeholder="email@domain.com" required>
+                </div>
+            </div>
 
-<tr valign="center">
-<td align="left">Foto</td>
-<td align="center">:</td>
-<td ><input type="file" name="file" id="file"></td>
-</tr>
+            <div class="form-group">
+                <label class="form-label">Alamat Domisili <span class="required">*</span></label>
+                <input type="text" name="alamat" class="form-control" placeholder="Alamat tempat tinggal lengkap" required>
+            </div>
 
-<tr valign="top">
-<td align="left">Deskripsi</td>
-<td align="center">:</td>
-<td ><textarea cols="35" rows="8" name="description"></textarea></td>
-</tr>
+            <div class="form-group">
+                <label class="form-label">Foto Profil (Opsional)</label>
+                <div style="display: flex; gap: 16px; align-items: center;">
+                    <div id="previewBox" style="width: 60px; height: 60px; border-radius: var(--radius-full); background: #f1f5f9; display: flex; align-items: center; justify-content: center; overflow: hidden; border: 2px dashed var(--card-border); flex-shrink: 0;">
+                        <i class='bx bx-image' style="font-size: 24px; color: var(--text-light);" id="previewIcon"></i>
+                        <img id="imagePreview" src="#" alt="Preview" style="display: none; width: 100%; height: 100%; object-fit: cover;">
+                    </div>
+                    <input type="file" name="file" id="fotoInput" class="form-control" accept="image/*" onchange="previewAvatar(this)">
+                </div>
+                <div class="form-hint">Format: JPG, PNG, GIF (Maksimal 1 MB)</div>
+            </div>
 
-<tr valign="top">
-<td align="center" colspan="3">
-	<input type="submit" name="submit" value="submit">
-	<input type="reset" name="reset" value="reset">
-</td>
-</tr>
-	<?
-		$tglentry=date("Y-m-d");
-		echo "<input type=hidden name=tglentry value=$tglentry>";
-	?>
-<tr>
-<td colspan="3"><iframe width="100%" name="content" height="100" frameborder="0" scrolling="auto"></iframe></td>
-</tr>
-</form>
-</table>
+            <div class="form-group">
+                <label class="form-label">Deskripsi / Catatan Tambahan</label>
+                <textarea name="description" class="form-control" rows="3" placeholder="Informasi kelas, jurusan (RPL, TKJ, dll.) atau keterangan lainnya"></textarea>
+            </div>
+
+            <div style="display: flex; gap: 12px; margin-top: 24px;">
+                <button type="submit" class="btn btn-primary" style="flex: 1; padding: 12px;">
+                    <i class='bx bx-check'></i> Selesaikan Pendaftaran
+                </button>
+                <button type="reset" class="btn btn-secondary" style="padding: 12px 20px;">
+                    Reset
+                </button>
+            </div>
+        </form>
+
+        <div style="margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--card-border); text-align: center; font-size: 13px; color: var(--text-muted);">
+            Sudah memiliki akun? <a href="index.php?pg=login" style="font-weight: 600;">Masuk sekarang</a>
+        </div>
+    </div>
 </div>
-</body>
-</html>
+
+<script>
+function previewAvatar(input) {
+    const preview = document.getElementById('imagePreview');
+    const icon = document.getElementById('previewIcon');
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            preview.src = e.target.result;
+            preview.style.display = 'block';
+            icon.style.display = 'none';
+        }
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+</script>

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 320" role="img" aria-label="Default book cover">
+  <defs>
+    <linearGradient id="bookCoverBg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#dbeafe"/>
+      <stop offset="100%" stop-color="#c7d2fe"/>
+    </linearGradient>
+  </defs>
+  <rect width="240" height="320" rx="20" fill="url(#bookCoverBg)"/>
+  <rect x="26" y="24" width="188" height="272" rx="16" fill="#f8fafc" opacity="0.85"/>
+  <rect x="48" y="60" width="112" height="12" rx="6" fill="#4f46e5" opacity="0.75"/>
+  <rect x="48" y="86" width="144" height="12" rx="6" fill="#94a3b8" opacity="0.7"/>
+  <rect x="48" y="116" width="124" height="12" rx="6" fill="#94a3b8" opacity="0.7"/>
+  <path d="M76 212c10-18 28-28 48-28s38 10 48 28" fill="#4f46e5" opacity="0.18"/>
+  <circle cx="124" cy="166" r="30" fill="#4f46e5" opacity="0.18"/>
+  <path d="M62 244h100" stroke="#4f46e5" stroke-width="10" stroke-linecap="round" opacity="0.6"/>
+</svg>

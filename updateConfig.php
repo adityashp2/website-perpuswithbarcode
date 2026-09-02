@@ -1,16 +1,25 @@
-<?
-	session_start();
-	include 'koneksi.php';
-	$admin = $_POST['admin'];
-	$maxLamaPinjam=$_POST['maxLamaPinjam'];
-	$dendaPerHari=$_POST['dendaPerHari'];
-	$id=$_POST['id'];
-	
-	$query=mysql_query("update config set maxLamaPinjam=$maxLamaPinjam, dendaPerHari=$dendaPerHari where id=$id");
-	if($query){
-		echo "update config success<br>";
-	} else {
-		echo "update config failed<br>";
-	}
-	//header('location:index.php?pg=penerbit&admin=$admin');
-?>
+<?php
+require_once __DIR__ . '/koneksi.php';
+
+$user = get_current_user_data();
+if (!$user || $user['type'] !== 'ADM') {
+    set_flash('error', 'Akses ditolak.');
+    header("Location: index.php?pg=notadmin");
+    exit();
+}
+
+$admin = $user['admin_id'];
+$id = (int)($_POST['id'] ?? 1);
+$maxLamaPinjam = (int)($_POST['maxLamaPinjam'] ?? 3);
+$dendaPerHari = (float)($_POST['dendaPerHari'] ?? 500);
+
+$query = db_query("UPDATE config SET maxLamaPinjam='$maxLamaPinjam', dendaPerHari='$dendaPerHari' WHERE id='$id'");
+
+if ($query) {
+    set_flash('success', 'Pengaturan batas lama pinjam & besaran denda berhasil diperbarui.');
+} else {
+    set_flash('error', 'Gagal memperbarui konfigurasi.');
+}
+
+header("Location: index.php?pg=config&admin=" . urlencode($admin));
+exit();

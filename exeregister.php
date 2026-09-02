@@ -1,53 +1,89 @@
-<meta http-equiv="Page-Exit" content="BlendTrans(Duration:1.0)">
-<link rev="stylesheet" rel="stylesheet" type="text/css" href="style1.css">
-<?
-include 'koneksi.php';
-$user=$_POST['username'];
-$md_username=md5($user);
+<?php
+require_once __DIR__ . '/koneksi.php';
 
-$pass=$_POST['password'];
-$md_password=md5($pass);
+$user = trim($_POST['username'] ?? '');
+$pass = trim($_POST['password'] ?? '');
+$name = trim($_POST['name'] ?? '');
+$sex = $_POST['sex'] ?? 'L';
+$telp = trim($_POST['telp'] ?? '');
+$alamat = trim($_POST['alamat'] ?? '');
+$mail = trim($_POST['mail'] ?? '');
+$desc = trim($_POST['description'] ?? '');
+$tgl = $_POST['tglentry'] ?? date('Y-m-d');
 
-$name=$_POST['name'];
-$sex=$_POST['sex'];
-$tlp=$_POST['telp'];
-$alamat=$_POST['alamat'];
-$mail=$_POST['mail'];
-$desc=$_POST['description'];
-$tgl=$_POST['tglentry'];
-$filename='';
-
-if ((($_FILES["file"]["type"] == "image/gif") || ($_FILES["file"]["type"] == "image/jpeg") || ($_FILES["file"]["type"] == "image/pjpeg")
-	|| ($_FILES["file"]["type"] == "image/jpg") || ($_FILES["file"]["type"] == "image/png"))
-	&& ($_FILES["file"]["size"] < 1000000)){
-		
-	if ($_FILES["file"]["error"] > 0){
-		echo "Return Code: " . $_FILES["file"]["error"] . "<br />";
-    } else {
-		$sqladmin=mysql_query("insert into admin (id, username, password, type) values('$md_username','$user', '$md_password', 'ANG')");
-		if($sqladmin){
-			$filename=$_FILES["file"]["name"];
-			$sqlanggota=mysql_query("insert into anggota values('','$md_username','$name', '$sex', '$tlp', '$alamat', '$mail', '$tgl', '$desc', '$filename')");
-			if($sqlanggota){
-				//echo "Upload: " . $_FILES["file"]["name"] . "<br />";
-				//echo "Type: " . $_FILES["file"]["type"] . "<br />";
-				//echo "Size: " . ($_FILES["file"]["size"] / 1024) . " Kb<br />";
-				//echo "Temp file: " . $_FILES["file"]["tmp_name"] . "<br />";
-
-				if (file_exists("foto_profile/" . $_FILES["file"]["name"])){
-					//echo $_FILES["file"]["name"] . " already exists. ";
-				} else {
-					move_uploaded_file($_FILES["file"]["tmp_name"],"foto_profile/" . $_FILES["file"]["name"]);
-					//echo "Stored in: " . "foto_profile/" . $_FILES["file"]["name"];
-					//echo "<br>";
-				}
-				echo "Registrasi Berhasil";
-			}
-		} else
-			echo "username yang anda gunakan sudah dipakai";
-    }
-}else{
-  echo "Invalid file";
+if (empty($user) || empty($pass) || empty($name)) {
+    set_flash('error', 'Semua field bertanda bintang wajib diisi!');
+    header("Location: index.php?pg=register");
+    exit();
 }
 
-?>
+if (strlen($pass) < 6 || strlen($pass) > 72) {
+    set_flash('error', 'Password minimal 6 karakter dan maksimal 72 karakter.');
+    header("Location: index.php?pg=register");
+    exit();
+}
+
+$user_esc = db_escape($user);
+$md_username = md5($user);
+$password_hash = hash_password($pass);
+
+$check_user = db_query("SELECT id FROM admin WHERE username='$user_esc' LIMIT 1");
+if (db_num_rows($check_user) > 0) {
+    set_flash('error', 'Username "<strong>' . htmlspecialchars($user) . '</strong>" sudah digunakan! Silakan gunakan username lain.');
+    header("Location: index.php?pg=register");
+    exit();
+}
+
+$filename = '';
+
+if (isset($_FILES["file"]) && !empty($_FILES["file"]["name"])) {
+    $file_tmp = $_FILES["file"]["tmp_name"] ?? '';
+    $file_size = (int)($_FILES["file"]["size"] ?? 0);
+    $file_name_orig = $_FILES["file"]["name"] ?? '';
+    $file_ext = strtolower(pathinfo($file_name_orig, PATHINFO_EXTENSION));
+
+    $allowed_exts = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+
+    if (!is_uploaded_file($file_tmp) || !in_array($file_ext, $allowed_exts, true) || $file_size > 2097152) {
+        set_flash('error', 'File foto profil tidak valid. Gunakan JPG, PNG, GIF, atau WEBP dengan ukuran maksimal 2 MB.');
+        header("Location: index.php?pg=register");
+        exit();
+    }
+
+    $target_dir = __DIR__ . "/foto_profile/";
+    if (!is_dir($target_dir)) {
+        mkdir($target_dir, 0755, true);
+    }
+
+    $filename = time() . "_" . preg_replace('/[^a-zA-Z0-9._-]/', '', $file_name_orig);
+    if (!move_uploaded_file($file_tmp, $target_dir . $filename)) {
+        set_flash('error', 'Gagal menyimpan foto profil. Silakan coba lagi.');
+        header("Location: index.php?pg=register");
+        exit();
+    }
+}
+
+$ins_admin = db_query("INSERT INTO admin (id, username, password, type) VALUES ('$md_username', '$user_esc', '" . db_escape($password_hash) . "', 'ANG')");
+
+if ($ins_admin) {
+    $name_esc = db_escape($name);
+    $sex_esc = db_escape($sex);
+    $telp_esc = db_escape($telp);
+    $alamat_esc = db_escape($alamat);
+    $mail_esc = db_escape($mail);
+    $desc_esc = db_escape($desc);
+    $filename_esc = db_escape($filename);
+
+    $ins_anggota = db_query("INSERT INTO anggota (id_admin, nama, sex, telp, alamat, email, tgl_entry, descripsi, foto) 
+        VALUES ('$md_username', '$name_esc', '$sex_esc', '$telp_esc', '$alamat_esc', '$mail_esc', '$tgl', '$desc_esc', '$filename_esc')");
+
+    if ($ins_anggota) {
+        set_flash('success', 'Pendaftaran berhasil! Silakan masuk menggunakan akun baru Anda.');
+        header("Location: index.php?pg=login");
+        exit();
+    }
+}
+
+set_flash('error', 'Terjadi kendala saat menyimpan pendaftaran. Silakan coba kembali.');
+header("Location: index.php?pg=register");
+exit();

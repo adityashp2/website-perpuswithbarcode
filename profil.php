@@ -1,18 +1,76 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<title>Untitled Document</title>
-</head>
+<?php
+require_once __DIR__ . '/koneksi.php';
+?>
+<div class="page-header">
+    <div class="page-header-info">
+        <h1>Profil Perpustakaan Politeknik Negeri Lampung</h1>
+        <p>Mengenal lebih dekat visi, misi, fasilitas, dan layanan Unit Pelaksana Teknis (UPT) Perpustakaan Polinela.</p>
+    </div>
+</div>
 
-<body>
-<table width="100%" border="0">
-	<tr>
-		<td><p><a href="#" class="style3">Profil Pustaka Smekda Surabaya </a>&nbsp;
-<p><img src="images/laptop1.jpg" width="141" height="94" align="left" />	Pustaka Semekda telah berdiri sejak zaman belanda menjajah indonesia ,saat itu smkeda dijadikan tempat penyimpanan bala tentara kemudian oleh belanda dikembangkan menjadi sekolah tekhnik yang hanya boleh bersekolah adalah anak dari para pejabat pada saat itu dari sekolah belanda itu dikembangkan dan membentuk badan perpustakaan sekolah sampai saat ini perpustakaan itu masih tetap ada dan banyak sekali digemari oleh pelajar oleh para pelajar Smekda dan harapannya siswa lulusan Smekda dapat berkompetisi di dunia pekerjaan dengan berbekan ilmu pengetahuan yang telah mereka peroleh dari sekolah asalnya sehingga para pelajar Smekda dapat memunculkan generasi  generasi yang mampu menharumkan nama sekolah , negara, maupun agama dari tiap pelajar tersebut sehingga dengan latarbelakang seperti itu disini kami pihak pengelolah perpustakaan ingin mengelolah perpusnyakaannya sampai akhirnya saat ini kami menggunakan basis intranet untuk persewaan buku dari perpus Smekda</p>
-<p></p>&nbsp;</td>
-	</tr>
-</table>
+<div class="card" style="margin-bottom: 24px;">
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 32px; align-items: center;" class="profile-card">
+        <div>
+            <h2 style="font-family: var(--font-heading); font-size: 22px; margin-bottom: 14px; color: var(--primary);">
+                Pusat Sumber Belajar & Riset Terapan Polinela
+            </h2>
+            <p style="color: var(--text-muted); line-height: 1.8; margin-bottom: 14px;">
+                Perpustakaan Politeknik Negeri Lampung (UPT Perpustakaan Polinela) merupakan unit penunjang akademik yang bertugas menyediakan sumber literatur ilmiah, buku teks vokasi, jurnal ilmiah, tugas akhir/skripsi, serta referensi teknologi terapan bagi seluruh mahasiswa, dosen, dan sivitas akademika Polinela.
+            </p>
+            <p style="color: var(--text-muted); line-height: 1.8;">
+                Melalui sistem perpustakaan digital ini, pemustaka dapat menelusuri katalog koleksi secara cepat, memantau ketersediaan eksemplar, serta menikmati layanan sirkulasi peminjaman dan pengembalian yang terintegrasi secara daring.
+            </p>
+        </div>
+        <div style="background: linear-gradient(135deg, #1e1b4b, #312e81); border-radius: var(--radius-lg); padding: 32px; color: #fff;">
+            <h3 style="font-family: var(--font-heading); font-size: 18px; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+                <i class='bx bx-target-lock' style="color: #38bdf8;"></i> Visi & Misi
+            </h3>
+            <div style="margin-bottom: 16px;">
+                <strong style="color: #93c5fd; display: block; margin-bottom: 4px;">VISI:</strong>
+                <p style="font-size: 13.5px; opacity: 0.9;">
+                    Menjadi pusat layanan informasi dan perpustakaan digital terkemuka yang mendukung pendidikan vokasi unggul dan berdaya saing global.
+                </p>
+            </div>
+            <div>
+                <strong style="color: #93c5fd; display: block; margin-bottom: 4px;">MISI:</strong>
+                <ul style="padding-left: 18px; font-size: 13px; opacity: 0.9; line-height: 1.7;">
+                    <li>Menyediakan koleksi bahan pustaka vokasi dan terapan yang mutakhir dan relevan.</li>
+                    <li>Mengembangkan layanan sirkulasi perpustakaan modern berbasis teknologi informasi.</li>
+                    <li>Mendukung kegiatan riset, inovasi terapan, dan pengabdian masyarakat sivitas akademika Polinela.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
 
-</body>
-</html>
+<div class="card">
+    <div class="card-header">
+        <div class="card-title">
+            <i class='bx bx-map-pin' style="color: var(--primary);"></i>
+            <span>Informasi & Kontak Layanan</span>
+        </div>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px;">
+        <div style="padding: 16px; background: #f8fafc; border-radius: var(--radius-md); border: 1px solid var(--card-border);">
+            <div style="font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px;">
+                <i class='bx bx-time'></i> Jam Layanan Pemustaka
+            </div>
+            <div style="font-weight: 600; color: #0f172a;">Senin - Jumat</div>
+            <div style="font-size: 13px; color: var(--text-muted);">08.00 - 16.00 WIB</div>
+        </div>
+        <div style="padding: 16px; background: #f8fafc; border-radius: var(--radius-md); border: 1px solid var(--card-border);">
+            <div style="font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px;">
+                <i class='bx bx-map'></i> Alamat Kampus
+            </div>
+            <div style="font-weight: 600; color: #0f172a;">Gedung UPT Perpustakaan Polinela</div>
+            <div style="font-size: 13px; color: var(--text-muted);">Jl. Soekarno Hatta No. 10, Rajabasa, Bandar Lampung</div>
+        </div>
+        <div style="padding: 16px; background: #f8fafc; border-radius: var(--radius-md); border: 1px solid var(--card-border);">
+            <div style="font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px;">
+                <i class='bx bx-envelope'></i> Email & Telepon
+            </div>
+            <div style="font-weight: 600; color: #0f172a;">perpustakaan@polinela.ac.id</div>
+            <div style="font-size: 13px; color: var(--text-muted);">Telp: (0721) 703995</div>
+        </div>
+    </div>
+</div>
