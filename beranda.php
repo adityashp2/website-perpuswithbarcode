@@ -22,6 +22,9 @@ $total_active_loans = $q_active_loans['total'] ?? 0;
 $q_total_denda = db_fetch_one(db_query("SELECT SUM(denda) as total FROM pengembalian"));
 $total_denda = $q_total_denda['total'] ?? 0;
 
+$q_pending_users = (int)(db_fetch_one(db_query("SELECT COUNT(*) as total FROM anggota WHERE status_verifikasi = 'PENDING'"))['total'] ?? 0);
+$q_total_members = (int)(db_fetch_one(db_query("SELECT COUNT(*) as total FROM anggota a LEFT JOIN admin adm ON a.id_admin = adm.id WHERE adm.type != 'ADM' OR adm.type IS NULL"))['total'] ?? 0);
+
 // Fetch Recent Books
 $q_buku_terbaru = db_query("SELECT b.isbn, b.judul, b.tahun, b.qty_stok, b.foto, pn.nama_penerbit, pg.nama_pengarang, kg.nama as nama_katalog 
     FROM buku b 
@@ -34,12 +37,29 @@ $buku_list = db_fetch_all($q_buku_terbaru);
 
 <?php if ($user && $user['type'] === 'ADM'): ?>
     <!-- ADMIN DASHBOARD -->
+    <?php if ($q_pending_users > 0): ?>
+        <div class="alert alert-warning" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:24px; border-radius:14px;">
+            <div style="display:flex; align-items:center; gap:10px;">
+                <i class='bx bxs-id-card' style="font-size:24px; color:#f59e0b;"></i>
+                <div>
+                    <strong>Terdapat <?= $q_pending_users ?> Pendaftaran Anggota Baru</strong> menunggu verifikasi KTM dan persetujuan (ACC).
+                </div>
+            </div>
+            <a href="index.php?pg=user<?= $admin_query_str ?>&tab=pending" class="btn btn-warning btn-sm" style="font-weight:700;">
+                <i class='bx bx-check-shield'></i> Periksa & ACC Sekarang
+            </a>
+        </div>
+    <?php endif; ?>
+
     <div class="page-header">
         <div class="page-header-info">
-            <h1>Selamat Datang, <?= htmlspecialchars($user['nama']) ?>! 👋</h1>
+            <h1>Selamat Datang, <?= htmlspecialchars($user['nama']) ?></h1>
             <p>Berikut adalah ringkasan data dan aktivitas sistem perpustakaan hari ini.</p>
         </div>
         <div class="page-actions">
+            <a href="index.php?pg=user<?= $admin_query_str ?>" class="btn btn-secondary">
+                <i class='bx bx-user-check'></i> Kelola Pengguna
+            </a>
             <a href="index.php?pg=formBuku<?= $admin_query_str ?>" class="btn btn-primary">
                 <i class='bx bx-plus-circle'></i> Tambah Buku
             </a>
@@ -86,8 +106,19 @@ $buku_list = db_fetch_all($q_buku_terbaru);
 
 <?php elseif ($user && $user['type'] === 'ANG'): ?>
     <!-- MEMBER DASHBOARD -->
+    <?php if (($user['status_verifikasi'] ?? '') === 'PENDING'): ?>
+        <div class="alert alert-warning">
+            <i class='bx bx-time-five' style="font-size: 20px;"></i>
+            <div><strong>KTM Anda sedang menunggu verifikasi petugas.</strong> Peminjaman buku akan aktif setelah KTM disetujui.</div>
+        </div>
+    <?php elseif (($user['status_verifikasi'] ?? '') === 'DITOLAK'): ?>
+        <div class="alert alert-danger">
+            <i class='bx bx-error-circle' style="font-size: 20px;"></i>
+            <div><strong>Verifikasi KTM Anda ditolak.</strong> <?= htmlspecialchars($user['catatan_verifikasi'] ?: 'Silakan hubungi petugas perpustakaan.') ?></div>
+        </div>
+    <?php endif; ?>
     <div class="hero-banner">
-        <div class="hero-title">Halo, <?= htmlspecialchars($user['nama']) ?>! 📚</div>
+        <div class="hero-title">Halo, <?= htmlspecialchars($user['nama']) ?></div>
         <div class="hero-desc">
             Selamat datang di portal anggota Perpustakaan Politeknik Negeri Lampung (Polinela). Temukan buku perkuliahan, referensi ilmiah, jurnal, dan literatur favorit Anda dengan mudah.
         </div>

@@ -8,6 +8,12 @@ if (!$user || $user['type'] !== 'ANG') {
     exit();
 }
 
+if (($user['status_verifikasi'] ?? '') !== 'TERVERIFIKASI') {
+    set_flash('error', 'KTM Anda belum diverifikasi oleh petugas perpustakaan. Peminjaman buku belum dapat dilakukan sampai verifikasi selesai.');
+    header("Location: index.php?pg=peminjaman&admin=" . urlencode($user['admin_id']));
+    exit();
+}
+
 $admin = $user['admin_id'];
 $idAnggota = (int)($_POST['id_anggota'] ?? $user['id_anggota']);
 $tglPinjam = $_POST['tglPinjam'] ?? date('Y-m-d');

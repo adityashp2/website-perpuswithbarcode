@@ -12,7 +12,7 @@ $admin_query_str = "&admin=" . urlencode($admin_param);
 
 $foto_src = (!empty($user['foto']) && file_exists(__DIR__ . '/foto_profile/' . $user['foto'])) 
     ? 'foto_profile/' . htmlspecialchars($user['foto']) 
-    : 'https://ui-avatars.com/api/?name=' . urlencode($user['nama']) . '&background=4f46e5&color=fff&size=200';
+    : 'https://ui-avatars.com/api/?name=' . urlencode($user['nama']) . '&background=1d5449&color=fff&size=200';
 
 // Hitung statistik peminjaman jika tipe Anggota
 $total_pinjam = 0;
@@ -72,6 +72,24 @@ if ($user['id_anggota']) {
             <div style="background: var(--bg-main); padding: 12px; border-radius: var(--radius-md); border: 1px solid var(--card-border); margin-top: 12px;">
                 <div style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">Total Peminjaman</div>
                 <div style="font-size: 22px; font-weight: 800; color: var(--primary);"><?= $total_pinjam ?> kali</div>
+            </div>
+
+            <?php
+            $sv = $user['status_verifikasi'] ?? 'PENDING';
+            $sv_map = [
+                'TERVERIFIKASI' => ['Terverifikasi', 'badge-success', 'bx-check-shield'],
+                'PENDING'       => ['Menunggu Verifikasi KTM', 'badge-warning', 'bx-time'],
+                'DITOLAK'       => ['Verifikasi Ditolak', 'badge-danger', 'bx-x-circle'],
+            ];
+            [$sv_label, $sv_class, $sv_icon] = $sv_map[$sv] ?? $sv_map['PENDING'];
+            ?>
+            <div style="margin-top: 10px;">
+                <span class="badge <?= $sv_class ?>" style="font-size: 12.5px; padding: 6px 12px;">
+                    <i class='bx <?= $sv_icon ?>'></i> <?= $sv_label ?>
+                </span>
+                <?php if ($sv === 'DITOLAK' && !empty($user['catatan_verifikasi'])): ?>
+                    <div style="font-size: 12px; color: var(--text-muted); margin-top: 6px;"><?= htmlspecialchars($user['catatan_verifikasi']) ?></div>
+                <?php endif; ?>
             </div>
         <?php endif; ?>
     </div>

@@ -13,7 +13,7 @@ if ($user) {
                 <i class='bx bxs-user-plus'></i>
             </div>
             <h2 style="font-family: var(--font-heading); font-size: 22px; font-weight: 700; color: #0f172a;">Pendaftaran Anggota Baru</h2>
-            <p style="color: var(--text-muted); font-size: 13.5px; margin-top: 4px;">Daftar akun untuk meminjam buku dan mengakses layanan sirkulasi</p>
+            <p style="color: var(--text-muted); font-size: 13.5px; margin-top: 4px;">Daftar akun untuk meminjam buku dan mengakses layanan sirkulasi. Verifikasi KTM diperlukan sebelum akun aktif meminjam.</p>
         </div>
 
         <form method="POST" action="exeregister.php" enctype="multipart/form-data">
@@ -77,6 +77,24 @@ if ($user) {
                 <div class="form-hint">Format: JPG, PNG, GIF (Maksimal 1 MB)</div>
             </div>
 
+            <div class="form-group" style="background: var(--primary-light); border: 1px solid var(--card-border); border-radius: var(--radius-md); padding: 18px;">
+                <label class="form-label" style="display:flex; align-items:center; gap:6px;">
+                    <i class='bx bxs-id-card' style="color: var(--primary);"></i>
+                    Foto Kartu Tanda Mahasiswa (KTM) <span class="required">*</span>
+                </label>
+                <p style="font-size: 12.5px; color: var(--text-muted); margin-bottom: 12px;">
+                    Wajib diunggah untuk verifikasi keanggotaan. Petugas perpustakaan akan memeriksa KTM Anda sebelum akun dapat digunakan untuk meminjam buku.
+                </p>
+                <div style="display: flex; gap: 16px; align-items: center; flex-wrap: wrap;">
+                    <div id="ktmPreviewBox" style="width: 96px; height: 60px; border-radius: var(--radius-sm); background: #ffffff; display: flex; align-items: center; justify-content: center; overflow: hidden; border: 2px dashed var(--card-border); flex-shrink: 0;">
+                        <i class='bx bxs-id-card' style="font-size: 26px; color: var(--text-light);" id="ktmPreviewIcon"></i>
+                        <img id="ktmPreview" src="#" alt="Preview KTM" style="display: none; width: 100%; height: 100%; object-fit: cover;">
+                    </div>
+                    <input type="file" name="ktm_file" id="ktmInput" class="form-control" accept="image/*" onchange="previewKtm(this)" required>
+                </div>
+                <div class="form-hint">Foto/scan KTM yang jelas dan terbaca. Format: JPG, PNG, WEBP (Maksimal 2 MB).</div>
+            </div>
+
             <div class="form-group">
                 <label class="form-label">Deskripsi / Catatan Tambahan</label>
                 <textarea name="description" class="form-control" rows="3" placeholder="Informasi kelas, jurusan (RPL, TKJ, dll.) atau keterangan lainnya"></textarea>
@@ -102,6 +120,20 @@ if ($user) {
 function previewAvatar(input) {
     const preview = document.getElementById('imagePreview');
     const icon = document.getElementById('previewIcon');
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            preview.src = e.target.result;
+            preview.style.display = 'block';
+            icon.style.display = 'none';
+        }
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+function previewKtm(input) {
+    const preview = document.getElementById('ktmPreview');
+    const icon = document.getElementById('ktmPreviewIcon');
     if (input.files && input.files[0]) {
         const reader = new FileReader();
         reader.onload = function(e) {

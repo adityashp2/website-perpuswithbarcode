@@ -12,6 +12,20 @@ if ($pg === 'logout') {
 
 // Session is the single source of truth for auth state.
 $user = get_current_user_data();
+
+// Landing page handling:
+// Tamu / pengunjung yang belum login akan langsung melihat Standalone Landing Page
+if (!$user && in_array($pg, ['beranda', 'home', 'landing', ''])) {
+    require __DIR__ . '/landing.php';
+    exit();
+}
+
+// Jika pengguna sudah login dan mengakses landing, arahkan langsung ke dashboard internal
+if ($user && $pg === 'landing') {
+    header("Location: index.php?pg=beranda");
+    exit();
+}
+
 $admin_id = $user ? $user['admin_id'] : '';
 $admin_query_str = $admin_id ? "&admin=" . urlencode($admin_id) : "";
 
@@ -45,7 +59,7 @@ include __DIR__ . '/layout/sidebar.php';
                 </div>
                 <div style="display:flex; align-items:center; gap:5px; margin-top:1px;">
                     <i class='bx bx-time' style="font-size:13px;"></i>
-                    <span id="clockTime" style="font-family:monospace; font-size:13px; font-weight:800; color:var(--primary); letter-spacing:0.5px;">00:00:00</span>
+                    <span id="clockTime" style="font-family:monospace; font-size:13px; font-weight:800; color:var(--primary); letter-spacing:0.5px;"><?= date('H:i:s') ?> WIB</span>
                 </div>
             </div>
 
@@ -79,9 +93,16 @@ include __DIR__ . '/layout/sidebar.php';
 
         <?php
         switch ($pg) {
+            case 'landing':
+                include __DIR__ . '/landing.php';
+                break;
             case 'home':
             case 'beranda':
-                include __DIR__ . '/beranda.php';
+                if (!$user) {
+                    include __DIR__ . '/landing.php';
+                } else {
+                    include __DIR__ . '/beranda.php';
+                }
                 break;
             case 'register':
                 include __DIR__ . '/register.php';
@@ -148,6 +169,11 @@ include __DIR__ . '/layout/sidebar.php';
                 break;
             case 'acc':
                 include __DIR__ . '/accSirkulasi.php';
+                break;
+            case 'user':
+            case 'anggota':
+            case 'verifikasi':
+                include __DIR__ . '/listUser.php';
                 break;
             case 'profil':
                 include __DIR__ . '/profil.php';

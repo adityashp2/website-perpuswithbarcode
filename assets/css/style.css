@@ -1051,12 +1051,13 @@ textarea.form-control {
 @media (max-width: 768px) {
   .app-topbar {
     padding: 10px 16px;
+    gap: 10px;
   }
   .page-container {
     padding: 18px 14px;
   }
   .hero-banner {
-    padding: 28px 18px;
+    padding: 28px 20px;
     border-radius: var(--radius-lg);
   }
   .hero-title {
@@ -1073,7 +1074,7 @@ textarea.form-control {
     order: 3;
     max-width: 100%;
     width: 100%;
-    margin-top: 6px;
+    margin-top: 4px;
   }
   .topbar-left {
     flex: unset;
@@ -1089,18 +1090,17 @@ textarea.form-control {
     gap: 14px;
   }
   .book-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px;
   }
   .page-header {
     flex-direction: column;
     align-items: flex-start;
-    gap: 12px;
+    gap: 14px;
   }
   .page-actions {
     width: 100%;
-  }
-  .page-actions .btn {
-    flex: 1;
+    justify-content: flex-start;
   }
   .app-footer {
     padding: 16px;
@@ -1109,15 +1109,37 @@ textarea.form-control {
     gap: 8px;
   }
   .card {
-    padding: 18px 14px;
+    padding: 18px 16px;
+  }
+  .card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
   }
   .digital-id-card {
-    padding: 18px 14px;
+    padding: 20px 16px;
+  }
+  .table-modern th,
+  .table-modern td {
+    padding: 10px 12px;
+    font-size: 12.5px;
   }
 }
 
 @media (max-width: 480px) {
-  .btn {
+  .page-container {
+    padding: 14px 10px;
+  }
+  .book-grid {
+    grid-template-columns: 1fr;
+  }
+  .form-actions {
+    flex-direction: column;
+  }
+  .form-actions .btn {
+    width: 100%;
+  }
+  .btn-block-mobile {
     width: 100%;
   }
   .book-select-row {

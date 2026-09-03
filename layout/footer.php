@@ -43,6 +43,37 @@
         sidebarOverlay.addEventListener('click', closeSidebar);
     }
 
+    // Real-Time Live Clock (Waktu & Detik Berjalan Realtime)
+    function updateLiveClock() {
+        const timeEl = document.getElementById('clockTime');
+        const dateEl = document.getElementById('clockDate');
+        if (!timeEl && !dateEl) return;
+
+        const now = new Date();
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const seconds = String(now.getSeconds()).padStart(2, '0');
+
+        if (timeEl) {
+            timeEl.textContent = `${hours}:${minutes}:${seconds} WIB`;
+        }
+
+        if (dateEl) {
+            const months = [
+                'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+                'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+            ];
+            const day = now.getDate();
+            const month = months[now.getMonth()];
+            const year = now.getFullYear();
+            dateEl.textContent = `${day} ${month} ${year}`;
+        }
+    }
+
+    // Jalankan segera dan update setiap detik
+    updateLiveClock();
+    setInterval(updateLiveClock, 1000);
+
     // Auto dismiss flash alerts after 5 seconds
     setTimeout(() => {
         const alerts = document.querySelectorAll('.alert');

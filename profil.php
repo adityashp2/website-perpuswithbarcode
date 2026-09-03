@@ -21,18 +21,18 @@ require_once __DIR__ . '/koneksi.php';
                 Melalui sistem perpustakaan digital ini, pemustaka dapat menelusuri katalog koleksi secara cepat, memantau ketersediaan eksemplar, serta menikmati layanan sirkulasi peminjaman dan pengembalian yang terintegrasi secara daring.
             </p>
         </div>
-        <div style="background: linear-gradient(135deg, #1e1b4b, #312e81); border-radius: var(--radius-lg); padding: 32px; color: #fff;">
+        <div style="background: var(--sidebar-bg); border-radius: var(--radius-lg); padding: 32px; color: #fff;">
             <h3 style="font-family: var(--font-heading); font-size: 18px; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
-                <i class='bx bx-target-lock' style="color: #38bdf8;"></i> Visi & Misi
+                <i class='bx bx-target-lock' style="color: var(--secondary);"></i> Visi &amp; Misi
             </h3>
             <div style="margin-bottom: 16px;">
-                <strong style="color: #93c5fd; display: block; margin-bottom: 4px;">VISI:</strong>
+                <strong style="color: #d8c69a; display: block; margin-bottom: 4px;">VISI:</strong>
                 <p style="font-size: 13.5px; opacity: 0.9;">
                     Menjadi pusat layanan informasi dan perpustakaan digital terkemuka yang mendukung pendidikan vokasi unggul dan berdaya saing global.
                 </p>
             </div>
             <div>
-                <strong style="color: #93c5fd; display: block; margin-bottom: 4px;">MISI:</strong>
+                <strong style="color: #d8c69a; display: block; margin-bottom: 4px;">MISI:</strong>
                 <ul style="padding-left: 18px; font-size: 13px; opacity: 0.9; line-height: 1.7;">
                     <li>Menyediakan koleksi bahan pustaka vokasi dan terapan yang mutakhir dan relevan.</li>
                     <li>Mengembangkan layanan sirkulasi perpustakaan modern berbasis teknologi informasi.</li>

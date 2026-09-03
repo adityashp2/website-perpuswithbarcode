@@ -87,6 +87,22 @@ $admin_query_str = $admin_param ? "&admin=" . urlencode($admin_param) : "";
                 </li>
             </ul>
 
+            <div class="nav-section-title">Manajemen Pengguna</div>
+            <ul class="nav-list">
+                <li class="nav-item <?= in_array($current_page, ['user', 'anggota', 'verifikasi']) ? 'active' : '' ?>">
+                    <a href="index.php?pg=user<?= $admin_query_str ?>">
+                        <i class='bx bx-user-check'></i>
+                        <span>Kelola Pengguna
+                            <?php
+                            $cnt_pending_usr = db_fetch_one(db_query("SELECT COUNT(*) as c FROM anggota WHERE status_verifikasi = 'PENDING'"));
+                            $usr_pending_cnt = (int)($cnt_pending_usr['c'] ?? 0);
+                            if ($usr_pending_cnt > 0) echo '<span style="background:#f59e0b;color:#000;font-weight:700;padding:1px 7px;border-radius:99px;font-size:10px;margin-left:4px;">'.$usr_pending_cnt.'</span>';
+                            ?>
+                        </span>
+                    </a>
+                </li>
+            </ul>
+
             <div class="nav-section-title">Pengaturan & Sesi</div>
             <ul class="nav-list">
                 <li class="nav-item <?= $current_page === 'config' ? 'active' : '' ?>">

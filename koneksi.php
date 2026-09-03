@@ -31,7 +31,7 @@ if (!$koneksi) {
 
 if (!$koneksi) {
     die("<div style='font-family:sans-serif;padding:30px;background:#fee2e2;color:#991b1b;border-radius:12px;margin:30px auto;max-width:600px;box-shadow:0 10px 15px -3px rgba(0,0,0,0.1);'>
-        <h2 style='margin-top:0;'>⚠️ Gagal Terhubung ke MySQL Server</h2>
+        <h2 style='margin-top:0;'>Gagal Terhubung ke MySQL Server</h2>
         <p>Pastikan <strong>MySQL di Laragon sudah dinyalakan (Klik Start All di Laragon)</strong>.</p>
         <p><em>Error: " . htmlspecialchars(mysqli_connect_error()) . "</em></p>
     </div>");
@@ -43,7 +43,7 @@ mysqli_query($koneksi, "CREATE DATABASE IF NOT EXISTS `$db_name` CHARACTER SET u
 // 3. Pilih database 'perpustakaan'
 if (!mysqli_select_db($koneksi, $db_name)) {
     die("<div style='font-family:sans-serif;padding:30px;background:#fee2e2;color:#991b1b;border-radius:12px;margin:30px auto;max-width:600px;box-shadow:0 10px 15px -3px rgba(0,0,0,0.1);'>
-        <h2 style='margin-top:0;'>⚠️ Gagal Memilih Database '$db_name'</h2>
+        <h2 style='margin-top:0;'>Gagal Memilih Database '$db_name'</h2>
         <p><em>Error: " . htmlspecialchars(mysqli_error($koneksi)) . "</em></p>
     </div>");
 }
@@ -72,6 +72,9 @@ function init_database_tables($db) {
       `tgl_entry` date NOT NULL,
       `descripsi` text NOT NULL,
       `foto` varchar(255) DEFAULT NULL,
+      `ktm_foto` varchar(255) DEFAULT NULL,
+      `status_verifikasi` varchar(15) NOT NULL DEFAULT 'PENDING',
+      `catatan_verifikasi` varchar(255) DEFAULT NULL,
       PRIMARY KEY (`id_anggota`),
       KEY `admin` (`id_admin`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
@@ -155,7 +158,7 @@ function init_database_tables($db) {
     if (!$chk_adm || mysqli_num_rows($chk_adm) === 0) {
         $admin_hash = password_hash('admin', PASSWORD_DEFAULT);
         mysqli_query($db, "INSERT INTO `admin` VALUES ('21232f297a57a5a743894a0e4a801fc3','admin','" . mysqli_real_escape_string($db, $admin_hash) . "','ADM')");
-        mysqli_query($db, "INSERT INTO `anggota` VALUES (1,'21232f297a57a5a743894a0e4a801fc3','Administrator Polinela','L','081270000000','UPT Perpustakaan Polinela','admin@polinela.ac.id','2024-01-01','Administrator Perpustakaan Polinela','pusio-gmail-tux.png')");
+        mysqli_query($db, "INSERT INTO `anggota` (id_anggota, id_admin, nama, sex, telp, alamat, email, tgl_entry, descripsi, foto, status_verifikasi) VALUES (1,'21232f297a57a5a743894a0e4a801fc3','Administrator Polinela','L','081270000000','UPT Perpustakaan Polinela','admin@polinela.ac.id','2024-01-01','Administrator Perpustakaan Polinela','pusio-gmail-tux.png','TERVERIFIKASI')");
     }
 
     $chk_cfg = mysqli_query($db, "SELECT id FROM config LIMIT 1");
@@ -194,6 +197,36 @@ if ($chk_buku_foto && mysqli_num_rows($chk_buku_foto) === 0) {
 $chk_buku_limit = mysqli_query($koneksi, "SHOW COLUMNS FROM `buku` LIKE 'maks_pinjam_per_anggota'");
 if ($chk_buku_limit && mysqli_num_rows($chk_buku_limit) === 0) {
     mysqli_query($koneksi, "ALTER TABLE `buku` ADD COLUMN `maks_pinjam_per_anggota` INT NOT NULL DEFAULT 1 AFTER `qty_stok`");
+}
+
+// Pastikan kolom verifikasi KTM ada pada tabel anggota
+$chk_ktm_foto = mysqli_query($koneksi, "SHOW COLUMNS FROM `anggota` LIKE 'ktm_foto'");
+if ($chk_ktm_foto && mysqli_num_rows($chk_ktm_foto) === 0) {
+    mysqli_query($koneksi, "ALTER TABLE `anggota` ADD COLUMN `ktm_foto` VARCHAR(255) DEFAULT NULL AFTER `foto`");
+}
+$chk_status_verif = mysqli_query($koneksi, "SHOW COLUMNS FROM `anggota` LIKE 'status_verifikasi'");
+if ($chk_status_verif && mysqli_num_rows($chk_status_verif) === 0) {
+    mysqli_query($koneksi, "ALTER TABLE `anggota` ADD COLUMN `status_verifikasi` VARCHAR(15) NOT NULL DEFAULT 'PENDING' AFTER `ktm_foto`");
+    // Anggota lama (sudah ada sebelum fitur ini) dianggap terverifikasi otomatis agar tidak terkunci mendadak
+    mysqli_query($koneksi, "UPDATE `anggota` SET `status_verifikasi` = 'TERVERIFIKASI' WHERE `ktm_foto` IS NULL");
+}
+$chk_catatan_verif = mysqli_query($koneksi, "SHOW COLUMNS FROM `anggota` LIKE 'catatan_verifikasi'");
+if ($chk_catatan_verif && mysqli_num_rows($chk_catatan_verif) === 0) {
+    mysqli_query($koneksi, "ALTER TABLE `anggota` ADD COLUMN `catatan_verifikasi` VARCHAR(255) DEFAULT NULL AFTER `status_verifikasi`");
+}
+
+// Pastikan kolom status banned ada pada tabel admin
+$chk_is_banned = mysqli_query($koneksi, "SHOW COLUMNS FROM `admin` LIKE 'is_banned'");
+if ($chk_is_banned && mysqli_num_rows($chk_is_banned) === 0) {
+    mysqli_query($koneksi, "ALTER TABLE `admin` ADD COLUMN `is_banned` TINYINT(1) NOT NULL DEFAULT 0 AFTER `type`");
+}
+$chk_banned_reason = mysqli_query($koneksi, "SHOW COLUMNS FROM `admin` LIKE 'banned_reason'");
+if ($chk_banned_reason && mysqli_num_rows($chk_banned_reason) === 0) {
+    mysqli_query($koneksi, "ALTER TABLE `admin` ADD COLUMN `banned_reason` VARCHAR(255) DEFAULT NULL AFTER `is_banned`");
+}
+$chk_banned_at = mysqli_query($koneksi, "SHOW COLUMNS FROM `admin` LIKE 'banned_at'");
+if ($chk_banned_at && mysqli_num_rows($chk_banned_at) === 0) {
+    mysqli_query($koneksi, "ALTER TABLE `admin` ADD COLUMN `banned_at` DATETIME DEFAULT NULL AFTER `banned_reason`");
 }
 
 // Global variable backward compatibility
@@ -321,10 +354,19 @@ function get_current_user_data() {
         $q_anggota = db_query("SELECT * FROM anggota WHERE id_admin = '$admin_id_esc' LIMIT 1");
         $anggota = $q_anggota ? db_fetch_one($q_anggota) : null;
 
+        if (!empty($admin['is_banned']) && ($admin['type'] ?? '') !== 'ADM') {
+            $_SESSION = [];
+            session_destroy();
+            return null;
+        }
+
         return [
             'admin_id' => $admin['id'],
             'username' => $admin['username'],
             'type' => $admin['type'],
+            'is_banned' => (int)($admin['is_banned'] ?? 0),
+            'banned_reason' => $admin['banned_reason'] ?? '',
+            'banned_at' => $admin['banned_at'] ?? '',
             'nama' => $anggota['nama'] ?? ($admin['type'] === 'ADM' ? 'Administrator' : $admin['username']),
             'email' => $anggota['email'] ?? '',
             'telp' => $anggota['telp'] ?? '',
@@ -332,6 +374,9 @@ function get_current_user_data() {
             'sex' => $anggota['sex'] ?? 'L',
             'descripsi' => $anggota['descripsi'] ?? '',
             'foto' => $anggota['foto'] ?? '',
+            'ktm_foto' => $anggota['ktm_foto'] ?? '',
+            'status_verifikasi' => $anggota['status_verifikasi'] ?? 'TERVERIFIKASI',
+            'catatan_verifikasi' => $anggota['catatan_verifikasi'] ?? '',
             'id_anggota' => $anggota['id_anggota'] ?? null,
             'tgl_entry' => $anggota['tgl_entry'] ?? ''
         ];

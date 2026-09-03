@@ -39,6 +39,24 @@ $single_book_mode = $default_isbn !== '';
     </div>
 </div>
 
+<?php if (($user['status_verifikasi'] ?? '') === 'PENDING'): ?>
+    <div class="alert alert-warning">
+        <i class='bx bx-time-five' style="font-size: 20px;"></i>
+        <div>
+            <strong>KTM Anda sedang menunggu verifikasi.</strong> Petugas perpustakaan perlu memeriksa foto KTM yang Anda unggah saat pendaftaran sebelum Anda dapat mengajukan peminjaman buku.
+        </div>
+    </div>
+<?php elseif (($user['status_verifikasi'] ?? '') === 'DITOLAK'): ?>
+    <div class="alert alert-danger">
+        <i class='bx bx-error-circle' style="font-size: 20px;"></i>
+        <div>
+            <strong>Verifikasi KTM Anda ditolak.</strong>
+            <?= htmlspecialchars($user['catatan_verifikasi'] ?: 'Silakan hubungi petugas perpustakaan untuk mengunggah ulang foto KTM yang jelas.') ?>
+        </div>
+    </div>
+<?php endif; ?>
+
+
 <div class="card" style="max-width: 840px;">
     <form method="POST" action="savePeminjaman.php" id="formPinjam">
         <input type="hidden" name="admin" value="<?= htmlspecialchars($admin_param) ?>">
@@ -108,6 +126,12 @@ $single_book_mode = $default_isbn !== '';
         <?php if (empty($buku_tersedia)): ?>
             <div class="alert alert-warning">
                 <i class='bx bx-info-circle'></i> Saat ini semua stok buku sedang kosong atau belum tersedia untuk dipinjam.
+            </div>
+        <?php elseif (($user['status_verifikasi'] ?? '') !== 'TERVERIFIKASI'): ?>
+            <div style="display: flex; gap: 12px; padding-top: 20px; border-top: 1px solid var(--card-border); flex-wrap: wrap;">
+                <button type="button" class="btn btn-secondary" style="flex: 1; min-width: 220px; padding: 12px 24px;" disabled title="Menunggu verifikasi KTM">
+                    <i class='bx bx-lock-alt'></i> Menunggu Verifikasi KTM
+                </button>
             </div>
         <?php else: ?>
             <div style="display: flex; gap: 12px; padding-top: 20px; border-top: 1px solid var(--card-border); flex-wrap: wrap;">

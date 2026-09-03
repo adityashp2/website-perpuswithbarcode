@@ -36,21 +36,22 @@ $buku_list = db_fetch_all(db_query("
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cetak Label Barcode Buku — Pustaka Polinela</title>
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Source+Serif+4:wght@600;700&display=swap');
         
         * { box-sizing: border-box; margin: 0; padding: 0; }
         
         body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-family: 'Inter', sans-serif;
             background: #f1f5f9;
             padding: 24px;
         }
 
         /* Print Controls Bar (hidden on print) */
         .print-controls {
-            background: #1e293b;
+            background: #12211d;
             color: #fff;
             padding: 16px 24px;
             border-radius: 12px;
@@ -64,7 +65,7 @@ $buku_list = db_fetch_all(db_query("
         .print-controls h2 { font-size: 16px; font-weight: 700; }
         .print-controls p  { font-size: 13px; color: #94a3b8; margin-top: 2px; }
         .btn-print {
-            background: #4f46e5;
+            background: #a06a28;
             color: #fff;
             border: none;
             padding: 10px 24px;
@@ -77,7 +78,7 @@ $buku_list = db_fetch_all(db_query("
             gap: 8px;
             text-decoration: none;
         }
-        .btn-print:hover { background: #4338ca; }
+        .btn-print:hover { background: #85561f; }
         .btn-back {
             background: #334155;
             color: #fff;
@@ -165,8 +166,8 @@ $buku_list = db_fetch_all(db_query("
         }
 
         .label-card .katalog-badge {
-            background: #eef2ff;
-            color: #4f46e5;
+            background: #e8f0ed;
+            color: #1d5449;
             padding: 1px 7px;
             border-radius: 99px;
             font-weight: 700;
@@ -198,12 +199,12 @@ $buku_list = db_fetch_all(db_query("
 <!-- Print Controls -->
 <div class="print-controls">
     <div>
-        <h2>🏷️ Label Barcode Buku — Perpustakaan Politeknik Negeri Lampung</h2>
+        <h2><i class='bx bxs-barcode'></i> Label Barcode Buku — Perpustakaan Politeknik Negeri Lampung</h2>
         <p><?= count($buku_list) ?> label siap cetak. Gunakan gunting/cutter untuk memotong dan tempel pada punggung/halaman buku fisik.</p>
     </div>
     <div style="display:flex; gap:10px; flex-wrap:wrap;">
-        <a href="javascript:window.close();" class="btn-back">← Kembali</a>
-        <button class="btn-print" onclick="window.print()">🖨️ Cetak Label Sekarang</button>
+        <a href="javascript:window.close();" class="btn-back">&larr; Kembali</a>
+        <button class="btn-print" onclick="window.print()"><i class='bx bx-printer'></i> Cetak Label Sekarang</button>
     </div>
 </div>
 
@@ -216,7 +217,7 @@ $buku_list = db_fetch_all(db_query("
 <div class="labels-grid" id="labelsGrid">
     <?php foreach ($buku_list as $b): ?>
         <div class="label-card">
-            <div class="library-name">📚 UPT Perpustakaan — Polinela</div>
+            <div class="library-name"><i class='bx bxs-book-bookmark'></i> UPT Perpustakaan — Polinela</div>
             <div class="book-title"><?= htmlspecialchars($b['judul']) ?></div>
             <div class="barcode-wrap">
                 <svg class="barcode-render" data-isbn="<?= htmlspecialchars($b['isbn']) ?>"></svg>

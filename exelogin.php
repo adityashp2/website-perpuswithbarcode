@@ -26,6 +26,13 @@ if (!verify_password($pass, $row['password'] ?? '')) {
     exit();
 }
 
+if (!empty($row['is_banned']) && ($row['type'] ?? '') !== 'ADM') {
+    $alasan = !empty($row['banned_reason']) ? htmlspecialchars($row['banned_reason']) : 'Pelanggaran aturan perpustakaan.';
+    set_flash('error', 'Akun Anda telah <strong>di-banned / dinonaktifkan</strong> oleh administrator.<br>Alasan: <em>' . $alasan . '</em>.<br>Silakan hubungi petugas perpustakaan.');
+    header("Location: index.php?pg=login");
+    exit();
+}
+
 if (password_needs_rehash($row['password'] ?? '', PASSWORD_DEFAULT)) {
     $new_hash = hash_password($pass);
     db_query("UPDATE admin SET password = '" . db_escape($new_hash) . "' WHERE id = '" . db_escape($row['id']) . "' LIMIT 1");
