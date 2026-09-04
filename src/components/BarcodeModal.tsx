@@ -53,12 +53,13 @@ export default function BarcodeModal({ buku, onClose }: BarcodeModalProps) {
         justifyContent: 'center',
         padding: '20px',
       }}
+      className="barcode-modal-overlay"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
       <div
-        className="card"
+        className="card barcode-modal-card"
         style={{
           maxWidth: '440px',
           width: '100%',

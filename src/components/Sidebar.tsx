@@ -173,21 +173,6 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
               </ul>
 
               <ul className="nav-list">
-                <li className={`nav-item ${isActive('/katalog') ? 'active' : ''}`}>
-                  <Link href="/katalog" onClick={onClose}>
-                    <i className="bx bx-cart-add"></i>
-                    <span>Pinjam Buku Baru</span>
-                  </Link>
-                </li>
-                <li className={`nav-item ${isActive('/member/dashboard') ? 'active' : ''}`}>
-                  <Link href="/member/dashboard" onClick={onClose}>
-                    <i className="bx bx-refresh"></i>
-                    <span>Peminjaman Aktif & Kembali</span>
-                  </Link>
-                </li>
-              </ul>
-
-              <ul className="nav-list">
                 <li className="nav-item">
                   <button className="sidebar-logout-button"
                     onClick={() => {
