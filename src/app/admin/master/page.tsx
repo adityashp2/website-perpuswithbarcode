@@ -2,19 +2,6 @@
 
 import React, { useState } from 'react';
 import { useData } from '@/lib/dataContext';
-import { useAuth } from '@/lib/authContext';
-import { 
-  Settings, 
-  Layers, 
-  Building, 
-  User, 
-  Plus, 
-  Trash2, 
-  Save, 
-  CheckCircle2, 
-  Clock, 
-  DollarSign 
-} from 'lucide-react';
 
 export default function AdminMasterPage() {
   const { 
@@ -31,17 +18,14 @@ export default function AdminMasterPage() {
     deletePengarang 
   } = useData();
 
-  // Config form state
   const [cfgData, setCfgData] = useState({
     maxLamaPinjam: config.maxLamaPinjam || 3,
     dendaPerHari: config.dendaPerHari || 500,
   });
 
-  // Master Forms state
   const [newKatalog, setNewKatalog] = useState({ id: '', nama: '' });
   const [newPenerbit, setNewPenerbit] = useState({ id: '', nama: '', email: '', telp: '', alamat: '' });
   const [newPengarang, setNewPengarang] = useState({ id: '', nama: '', email: '', telp: '', alamat: '' });
-  
   const [feedback, setFeedback] = useState<string | null>(null);
 
   const handleSaveConfig = async (e: React.FormEvent) => {
@@ -51,7 +35,7 @@ export default function AdminMasterPage() {
       maxLamaPinjam: Number(cfgData.maxLamaPinjam),
       dendaPerHari: Number(cfgData.dendaPerHari),
     });
-    setFeedback('Konfigurasi perpustakaan berhasil disimpan!');
+    setFeedback('Konfigurasi denda dan batas pinjam berhasil disimpan!');
     setTimeout(() => setFeedback(null), 3500);
   };
 
@@ -95,251 +79,245 @@ export default function AdminMasterPage() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-zinc-900 dark:text-white">
-          Pengaturan & Master Data Perpustakaan
-        </h1>
-        <p className="text-xs text-zinc-500 mt-1">
-          Konfigurasi batas sirkulasi, tarif denda keterlambatan, dan data master referensi
-        </p>
+    <>
+      <div className="page-header">
+        <div className="page-header-info">
+          <h1>Konfigurasi &amp; Master Data</h1>
+          <p>Pengaturan tarif denda keterlambatan, batas hari pinjam, dan master data perpustakaan.</p>
+        </div>
       </div>
 
       {feedback && (
-        <div className="p-4 rounded-2xl bg-emerald-50 text-emerald-800 border border-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-300 flex items-center gap-3 text-sm font-medium">
-          <CheckCircle2 className="w-5 h-5 shrink-0" />
-          <span>{feedback}</span>
+        <div className="alert alert-success">
+          <i className="bx bx-check-circle" style={{ fontSize: '20px' }}></i>
+          <div>{feedback}</div>
         </div>
       )}
 
-      {/* 1. Perpustakaan Config Form */}
-      <div className="bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-zinc-800 p-6 md:p-8 shadow-sm">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/80 text-blue-600 flex items-center justify-center">
-            <Settings className="w-5 h-5" />
-          </div>
-          <div>
-            <h2 className="text-base font-bold text-zinc-900 dark:text-white">
-              Aturan Sirkulasi & Denda
-            </h2>
-            <p className="text-xs text-zinc-500">
-              Menentukan batas hari pinjam dan denda otomatis untuk seluruh transaksi
-            </p>
+      {/* 1. Aturan Denda */}
+      <div className="card" style={{ marginBottom: '24px' }}>
+        <div className="card-header">
+          <div className="card-title">
+            <i className="bx bx-slider-alt"></i>
+            <span>Konfigurasi Sirkulasi &amp; Denda</span>
           </div>
         </div>
+        <div className="card-body">
+          <form onSubmit={handleSaveConfig}>
+            <div className="form-grid">
+              <div className="form-group">
+                <label className="form-label">Maksimal Lama Pinjam (Hari)</label>
+                <input
+                  type="number"
+                  min="1"
+                  className="form-control"
+                  value={cfgData.maxLamaPinjam}
+                  onChange={(e) => setCfgData({ ...cfgData, maxLamaPinjam: parseInt(e.target.value) || 1 })}
+                />
+              </div>
 
-        <form onSubmit={handleSaveConfig} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
-              Maksimal Lama Pinjam (Hari)
-            </label>
-            <input
-              type="number"
-              min="1"
-              value={cfgData.maxLamaPinjam}
-              onChange={(e) => setCfgData({ ...cfgData, maxLamaPinjam: parseInt(e.target.value) || 1 })}
-              className="w-full px-4 py-2.5 text-sm bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl focus:outline-none focus:border-blue-500 text-zinc-900 dark:text-white"
-            />
-          </div>
+              <div className="form-group">
+                <label className="form-label">Tarif Denda per Hari (Rupiah)</label>
+                <input
+                  type="number"
+                  min="0"
+                  step="100"
+                  className="form-control"
+                  value={cfgData.dendaPerHari}
+                  onChange={(e) => setCfgData({ ...cfgData, dendaPerHari: parseInt(e.target.value) || 0 })}
+                />
+              </div>
+            </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
-              Tarif Denda Keterlambatan per Hari (Rupiah)
-            </label>
-            <input
-              type="number"
-              min="0"
-              step="100"
-              value={cfgData.dendaPerHari}
-              onChange={(e) => setCfgData({ ...cfgData, dendaPerHari: parseInt(e.target.value) || 0 })}
-              className="w-full px-4 py-2.5 text-sm bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl focus:outline-none focus:border-blue-500 text-zinc-900 dark:text-white"
-            />
-          </div>
-
-          <div className="sm:col-span-2 flex justify-end mt-2">
-            <button
-              type="submit"
-              className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-md shadow-blue-500/20"
-            >
-              <Save className="w-4 h-4" />
-              <span>Simpan Aturan Sirkulasi</span>
-            </button>
-          </div>
-        </form>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '12px' }}>
+              <button type="submit" className="btn btn-primary">
+                <i className="bx bx-save"></i> Simpan Konfigurasi
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
 
       {/* 2. Master Katalog */}
-      <div className="bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-zinc-800 p-6 md:p-8 shadow-sm">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-950/80 text-indigo-600 flex items-center justify-center">
-            <Layers className="w-5 h-5" />
-          </div>
-          <div>
-            <h2 className="text-base font-bold text-zinc-900 dark:text-white">
-              Master Kategori & Katalog
-            </h2>
-            <p className="text-xs text-zinc-500">Pengelompokan rak buku dan klasifikasi ilmu</p>
+      <div className="card" style={{ marginBottom: '24px' }}>
+        <div className="card-header">
+          <div className="card-title">
+            <i className="bx bx-category"></i>
+            <span>Master Katalog &amp; Kategori ({katalog.length})</span>
           </div>
         </div>
+        <div className="card-body">
+          <form onSubmit={handleAddKatalog} style={{ display: 'flex', gap: '8px', marginBottom: '16px', flexWrap: 'wrap' }}>
+            <input
+              type="text"
+              required
+              placeholder="Kode (contoh: KG5)"
+              className="form-control"
+              style={{ width: '140px' }}
+              value={newKatalog.id}
+              onChange={(e) => setNewKatalog({ ...newKatalog, id: e.target.value })}
+            />
+            <input
+              type="text"
+              required
+              placeholder="Nama Kategori Baru"
+              className="form-control"
+              style={{ flex: 1 }}
+              value={newKatalog.nama}
+              onChange={(e) => setNewKatalog({ ...newKatalog, nama: e.target.value })}
+            />
+            <button type="submit" className="btn btn-primary">
+              <i className="bx bx-plus"></i> Tambah
+            </button>
+          </form>
 
-        <form onSubmit={handleAddKatalog} className="flex flex-col sm:flex-row gap-3 mb-6">
-          <input
-            type="text"
-            required
-            placeholder="Kode (contoh: KG5)"
-            value={newKatalog.id}
-            onChange={(e) => setNewKatalog({ ...newKatalog, id: e.target.value })}
-            className="w-full sm:w-36 px-3.5 py-2 text-xs bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl uppercase font-mono"
-          />
-          <input
-            type="text"
-            required
-            placeholder="Nama Kategori Baru"
-            value={newKatalog.nama}
-            onChange={(e) => setNewKatalog({ ...newKatalog, nama: e.target.value })}
-            className="flex-1 px-3.5 py-2 text-xs bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl"
-          />
-          <button
-            type="submit"
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1 shrink-0"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Tambah</span>
-          </button>
-        </form>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-          {katalog.map((k) => (
-            <div
-              key={k.id_katalog}
-              className="p-3 bg-zinc-50 dark:bg-zinc-800/60 rounded-xl border border-zinc-200 dark:border-zinc-700 flex items-center justify-between text-xs"
-            >
-              <div>
-                <span className="font-mono font-bold text-blue-600 block">{k.id_katalog}</span>
-                <span className="font-semibold text-zinc-800 dark:text-zinc-200">{k.nama}</span>
-              </div>
-              <button
-                onClick={() => deleteKatalog(k.id_katalog)}
-                className="p-1 text-zinc-400 hover:text-rose-600 rounded"
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '10px' }}>
+            {katalog.map((k) => (
+              <div
+                key={k.id_katalog}
+                style={{
+                  padding: '10px 14px',
+                  background: 'var(--bg-main)',
+                  border: '1px solid var(--card-border)',
+                  borderRadius: 'var(--radius-md)',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center'
+                }}
               >
-                <Trash2 className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          ))}
+                <div>
+                  <span style={{ fontFamily: 'monospace', fontWeight: 700, color: 'var(--primary)', fontSize: '11px', display: 'block' }}>
+                    {k.id_katalog}
+                  </span>
+                  <strong style={{ fontSize: '13px' }}>{k.nama}</strong>
+                </div>
+                <button onClick={() => deleteKatalog(k.id_katalog)} className="btn btn-danger btn-sm" style={{ padding: '3px 6px' }}>
+                  <i className="bx bx-trash"></i>
+                </button>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* 3. Master Penerbit & Pengarang Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      {/* 3. Penerbit & Pengarang Grid */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px' }}>
         {/* Penerbit */}
-        <div className="bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-zinc-800 p-6 shadow-sm">
-          <h2 className="text-base font-bold text-zinc-900 dark:text-white mb-4 flex items-center gap-2">
-            <Building className="w-4 h-4 text-emerald-600" />
-            Data Penerbit ({penerbit.length})
-          </h2>
-
-          <form onSubmit={handleAddPenerbit} className="space-y-2 mb-4 text-xs">
-            <div className="flex gap-2">
+        <div className="card">
+          <div className="card-header">
+            <div className="card-title">
+              <i className="bx bx-buildings"></i>
+              <span>Penerbit ({penerbit.length})</span>
+            </div>
+          </div>
+          <div className="card-body">
+            <form onSubmit={handleAddPenerbit} style={{ display: 'flex', gap: '8px', marginBottom: '14px' }}>
               <input
                 type="text"
-                placeholder="Kode (PN04)"
+                placeholder="Kode"
+                className="form-control"
+                style={{ width: '90px' }}
                 value={newPenerbit.id}
                 onChange={(e) => setNewPenerbit({ ...newPenerbit, id: e.target.value })}
-                className="w-24 px-3 py-1.5 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg font-mono uppercase"
               />
               <input
                 type="text"
                 placeholder="Nama Penerbit"
+                className="form-control"
+                style={{ flex: 1 }}
                 value={newPenerbit.nama}
                 onChange={(e) => setNewPenerbit({ ...newPenerbit, nama: e.target.value })}
-                className="flex-1 px-3 py-1.5 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg"
               />
-            </div>
-            <button
-              type="submit"
-              className="w-full py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-semibold flex items-center justify-center gap-1"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              <span>Tambah Penerbit</span>
-            </button>
-          </form>
+              <button type="submit" className="btn btn-primary btn-sm">
+                <i className="bx bx-plus"></i>
+              </button>
+            </form>
 
-          <div className="space-y-2 max-h-60 overflow-y-auto">
-            {penerbit.map((p) => (
-              <div
-                key={p.id_penerbit}
-                className="p-2.5 rounded-xl border border-zinc-100 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/40 flex items-center justify-between text-xs"
-              >
-                <div>
-                  <span className="font-mono text-[10px] text-zinc-400 block">{p.id_penerbit}</span>
-                  <span className="font-semibold text-zinc-800 dark:text-zinc-200">{p.nama_penerbit}</span>
-                </div>
-                <button
-                  onClick={() => deletePenerbit(p.id_penerbit)}
-                  className="p-1 text-zinc-400 hover:text-rose-600 rounded"
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '240px', overflowY: 'auto' }}>
+              {penerbit.map((p) => (
+                <div
+                  key={p.id_penerbit}
+                  style={{
+                    padding: '8px 12px',
+                    background: 'var(--bg-main)',
+                    border: '1px solid var(--card-border)',
+                    borderRadius: 'var(--radius-sm)',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center'
+                  }}
                 >
-                  <Trash2 className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            ))}
+                  <div>
+                    <span style={{ fontFamily: 'monospace', fontSize: '10px', color: 'var(--text-muted)' }}>{p.id_penerbit}</span>
+                    <div style={{ fontSize: '13px', fontWeight: 600 }}>{p.nama_penerbit}</div>
+                  </div>
+                  <button onClick={() => deletePenerbit(p.id_penerbit)} className="btn btn-danger btn-sm" style={{ padding: '2px 6px' }}>
+                    <i className="bx bx-trash"></i>
+                  </button>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 
         {/* Pengarang */}
-        <div className="bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-zinc-800 p-6 shadow-sm">
-          <h2 className="text-base font-bold text-zinc-900 dark:text-white mb-4 flex items-center gap-2">
-            <User className="w-4 h-4 text-violet-600" />
-            Data Pengarang ({pengarang.length})
-          </h2>
-
-          <form onSubmit={handleAddPengarang} className="space-y-2 mb-4 text-xs">
-            <div className="flex gap-2">
+        <div className="card">
+          <div className="card-header">
+            <div className="card-title">
+              <i className="bx bx-pencil"></i>
+              <span>Pengarang ({pengarang.length})</span>
+            </div>
+          </div>
+          <div className="card-body">
+            <form onSubmit={handleAddPengarang} style={{ display: 'flex', gap: '8px', marginBottom: '14px' }}>
               <input
                 type="text"
-                placeholder="Kode (PG04)"
+                placeholder="Kode"
+                className="form-control"
+                style={{ width: '90px' }}
                 value={newPengarang.id}
                 onChange={(e) => setNewPengarang({ ...newPengarang, id: e.target.value })}
-                className="w-24 px-3 py-1.5 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg font-mono uppercase"
               />
               <input
                 type="text"
                 placeholder="Nama Pengarang"
+                className="form-control"
+                style={{ flex: 1 }}
                 value={newPengarang.nama}
                 onChange={(e) => setNewPengarang({ ...newPengarang, nama: e.target.value })}
-                className="flex-1 px-3 py-1.5 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg"
               />
-            </div>
-            <button
-              type="submit"
-              className="w-full py-1.5 bg-violet-600 hover:bg-violet-700 text-white rounded-lg font-semibold flex items-center justify-center gap-1"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              <span>Tambah Pengarang</span>
-            </button>
-          </form>
+              <button type="submit" className="btn btn-primary btn-sm">
+                <i className="bx bx-plus"></i>
+              </button>
+            </form>
 
-          <div className="space-y-2 max-h-60 overflow-y-auto">
-            {pengarang.map((pg) => (
-              <div
-                key={pg.id_pengarang}
-                className="p-2.5 rounded-xl border border-zinc-100 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/40 flex items-center justify-between text-xs"
-              >
-                <div>
-                  <span className="font-mono text-[10px] text-zinc-400 block">{pg.id_pengarang}</span>
-                  <span className="font-semibold text-zinc-800 dark:text-zinc-200">{pg.nama_pengarang}</span>
-                </div>
-                <button
-                  onClick={() => deletePengarang(pg.id_pengarang)}
-                  className="p-1 text-zinc-400 hover:text-rose-600 rounded"
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '240px', overflowY: 'auto' }}>
+              {pengarang.map((pg) => (
+                <div
+                  key={pg.id_pengarang}
+                  style={{
+                    padding: '8px 12px',
+                    background: 'var(--bg-main)',
+                    border: '1px solid var(--card-border)',
+                    borderRadius: 'var(--radius-sm)',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center'
+                  }}
                 >
-                  <Trash2 className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            ))}
+                  <div>
+                    <span style={{ fontFamily: 'monospace', fontSize: '10px', color: 'var(--text-muted)' }}>{pg.id_pengarang}</span>
+                    <div style={{ fontSize: '13px', fontWeight: 600 }}>{pg.nama_pengarang}</div>
+                  </div>
+                  <button onClick={() => deletePengarang(pg.id_pengarang)} className="btn btn-danger btn-sm" style={{ padding: '2px 6px' }}>
+                    <i className="bx bx-trash"></i>
+                  </button>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }

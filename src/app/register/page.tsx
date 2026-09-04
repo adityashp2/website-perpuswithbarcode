@@ -5,14 +5,6 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useData } from '@/lib/dataContext';
 import { useAuth } from '@/lib/authContext';
-import { 
-  UserPlus, 
-  UploadCloud, 
-  CheckCircle2, 
-  AlertCircle, 
-  CreditCard,
-  ArrowRight
-} from 'lucide-react';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -79,187 +71,160 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-12">
-      <div className="bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-zinc-800 p-8 shadow-xl">
-        <div className="text-center mb-8">
-          <div className="w-12 h-12 rounded-2xl bg-blue-600 flex items-center justify-center text-white mx-auto mb-3 shadow-md shadow-blue-500/20">
-            <UserPlus className="w-6 h-6" />
+    <div style={{ maxWidth: '680px', margin: '30px auto' }}>
+      <div className="card" style={{ padding: '32px', boxShadow: 'var(--shadow-lg)' }}>
+        <div style={{ textAlign: 'center', marginBottom: '28px' }}>
+          <div style={{ width: '56px', height: '56px', background: 'var(--primary-light)', color: 'var(--primary)', borderRadius: 'var(--radius-md)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '28px', margin: '0 auto 16px' }}>
+            <i className="bx bxs-user-plus"></i>
           </div>
-          <h1 className="text-2xl font-extrabold text-zinc-900 dark:text-white">
+          <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '22px', fontWeight: 700, color: '#0f172a', margin: 0 }}>
             Pendaftaran Anggota Baru
-          </h1>
-          <p className="text-xs text-zinc-500 mt-1">
-            Unggah Kartu Tanda Mahasiswa (KTM) untuk verifikasi otomatis oleh Petugas
+          </h2>
+          <p style={{ color: 'var(--text-muted)', fontSize: '13.5px', marginTop: '4px' }}>
+            Daftar akun untuk meminjam buku dan mengakses layanan sirkulasi. Verifikasi KTM diperlukan sebelum akun aktif meminjam.
           </p>
         </div>
 
         {errorMsg && (
-          <div className="mb-6 p-3.5 bg-rose-50 border border-rose-200 dark:bg-rose-950/50 dark:border-rose-900 rounded-xl flex items-center gap-2.5 text-xs font-semibold text-rose-800 dark:text-rose-300">
-            <AlertCircle className="w-4 h-4 shrink-0" />
-            <span>{errorMsg}</span>
+          <div className="alert alert-danger" style={{ marginBottom: '16px' }}>
+            <i className="bx bx-error-circle" style={{ fontSize: '18px' }}></i>
+            <div>{errorMsg}</div>
           </div>
         )}
 
         {successMsg && (
-          <div className="mb-6 p-3.5 bg-emerald-50 border border-emerald-200 dark:bg-emerald-950/50 dark:border-emerald-900 rounded-xl flex items-center gap-2.5 text-xs font-semibold text-emerald-800 dark:text-emerald-300">
-            <CheckCircle2 className="w-4 h-4 shrink-0" />
-            <span>{successMsg}</span>
+          <div className="alert alert-success" style={{ marginBottom: '16px' }}>
+            <i className="bx bx-check-circle" style={{ fontSize: '18px' }}></i>
+            <div>{successMsg}</div>
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
-                Username Akun *
-              </label>
+        <form onSubmit={handleSubmit}>
+          <div className="form-grid">
+            <div className="form-group">
+              <label className="form-label">Username <span className="required">*</span></label>
               <input
                 type="text"
                 required
+                className="form-control"
+                placeholder="Contoh: mhs_polinela"
                 value={formData.username}
                 onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                placeholder="Contoh: aditya23"
-                className="w-full px-4 py-2.5 text-sm bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl focus:outline-none focus:border-blue-500 text-zinc-900 dark:text-white"
               />
+              <div className="form-hint">Digunakan untuk masuk ke sistem</div>
             </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
-                Nama Lengkap (Sesuai KTM) *
-              </label>
+            <div className="form-group">
+              <label className="form-label">Nama Lengkap <span className="required">*</span></label>
               <input
                 type="text"
                 required
+                className="form-control"
+                placeholder="Nama lengkap sesuai KTM"
                 value={formData.nama}
                 onChange={(e) => setFormData({ ...formData, nama: e.target.value })}
-                placeholder="Contoh: Muhammad Aditya"
-                className="w-full px-4 py-2.5 text-sm bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl focus:outline-none focus:border-blue-500 text-zinc-900 dark:text-white"
               />
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
-                Email Aktif *
-              </label>
+          <div className="form-grid">
+            <div className="form-group">
+              <label className="form-label">Alamat Email <span className="required">*</span></label>
               <input
                 type="email"
                 required
+                className="form-control"
+                placeholder="email@polinela.ac.id"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                placeholder="nama@polinela.ac.id"
-                className="w-full px-4 py-2.5 text-sm bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl focus:outline-none focus:border-blue-500 text-zinc-900 dark:text-white"
               />
             </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
-                Nomor WhatsApp / Telp *
-              </label>
+            <div className="form-group">
+              <label className="form-label">No. Telepon / WhatsApp <span className="required">*</span></label>
               <input
-                type="tel"
+                type="text"
                 required
+                className="form-control"
+                placeholder="08xxxxxxxxxx"
                 value={formData.telp}
                 onChange={(e) => setFormData({ ...formData, telp: e.target.value })}
-                placeholder="0812XXXXXXXX"
-                className="w-full px-4 py-2.5 text-sm bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl focus:outline-none focus:border-blue-500 text-zinc-900 dark:text-white"
               />
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
-                Jenis Kelamin
-              </label>
+          <div className="form-grid">
+            <div className="form-group">
+              <label className="form-label">Jenis Kelamin <span className="required">*</span></label>
               <select
+                className="form-control"
                 value={formData.sex}
                 onChange={(e) => setFormData({ ...formData, sex: e.target.value as 'L' | 'P' })}
-                className="w-full px-4 py-2.5 text-sm bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl focus:outline-none focus:border-blue-500 text-zinc-900 dark:text-white"
               >
-                <option value="L">Laki-laki</option>
-                <option value="P">Perempuan</option>
+                <option value="L">Laki-laki (L)</option>
+                <option value="P">Perempuan (P)</option>
               </select>
             </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
-                Alamat Domisili
-              </label>
+            <div className="form-group">
+              <label className="form-label">Alamat Domisili <span className="required">*</span></label>
               <input
                 type="text"
+                required
+                className="form-control"
+                placeholder="Alamat tempat tinggal lengkap"
                 value={formData.alamat}
                 onChange={(e) => setFormData({ ...formData, alamat: e.target.value })}
-                placeholder="Kota / Alamat Kos"
-                className="w-full px-4 py-2.5 text-sm bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl focus:outline-none focus:border-blue-500 text-zinc-900 dark:text-white"
               />
             </div>
           </div>
 
           {/* KTM Upload Section */}
-          <div className="pt-2">
-            <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
-              Foto / Scan Kartu Tanda Mahasiswa (KTM)
+          <div className="form-group" style={{ background: 'var(--primary-light)', border: '1px solid var(--card-border)', borderRadius: 'var(--radius-md)', padding: '18px', marginTop: '10px' }}>
+            <label className="form-label" style={{ color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <i className="bx bx-id-card" style={{ fontSize: '18px' }}></i>
+              <span>Foto / Scan Kartu Tanda Mahasiswa (KTM)</span>
             </label>
-            <div className="border-2 border-dashed border-zinc-300 dark:border-zinc-700 rounded-2xl p-6 text-center hover:border-blue-500 transition-colors bg-zinc-50 dark:bg-zinc-950/40">
+            <div style={{ display: 'flex', gap: '16px', alignItems: 'center', marginTop: '10px', flexWrap: 'wrap' }}>
               {ktmFilePreview ? (
-                <div className="flex flex-col items-center">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={ktmFilePreview}
-                    alt="Preview KTM"
-                    className="max-h-48 rounded-xl object-contain shadow-md mb-3 border border-zinc-200 dark:border-zinc-700"
-                  />
-                  <p className="text-xs text-emerald-600 font-semibold flex items-center gap-1">
-                    <CheckCircle2 className="w-4 h-4" />
-                    KTM Terpilih Siap Diunggah
-                  </p>
-                  <label className="mt-2 text-xs text-blue-600 cursor-pointer hover:underline">
-                    Ganti Foto
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleFileChange}
-                      className="hidden"
-                    />
-                  </label>
-                </div>
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={ktmFilePreview}
+                  alt="KTM"
+                  style={{ width: '120px', height: '80px', objectFit: 'cover', borderRadius: 'var(--radius-md)', border: '2px solid var(--primary)' }}
+                />
               ) : (
-                <label className="cursor-pointer flex flex-col items-center justify-center">
-                  <CreditCard className="w-10 h-10 text-zinc-400 mb-2" />
-                  <span className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
-                    Klik untuk pilih berkas foto KTM
-                  </span>
-                  <span className="text-xs text-zinc-400 mt-0.5">
-                    Format JPG, PNG, atau WebP (Maks 5MB)
-                  </span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileChange}
-                    className="hidden"
-                  />
-                </label>
+                <div style={{ width: '120px', height: '80px', borderRadius: 'var(--radius-md)', border: '2px dashed var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fff' }}>
+                  <i className="bx bx-image-add" style={{ fontSize: '28px', color: 'var(--primary)' }}></i>
+                </div>
               )}
+              <div style={{ flex: 1 }}>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  className="form-control"
+                  style={{ background: '#fff' }}
+                />
+                <div className="form-hint" style={{ color: '#475569' }}>
+                  Wajib diunggah untuk verifikasi status mahasiswa aktif Polinela.
+                </div>
+              </div>
             </div>
           </div>
 
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl shadow-md shadow-blue-500/20 transition-all flex items-center justify-center gap-2 mt-4"
+            className="btn btn-primary"
+            style={{ width: '100%', padding: '12px', fontSize: '14px', marginTop: '12px' }}
           >
-            <UserPlus className="w-4 h-4" />
-            <span>{isSubmitting ? 'Mendaftarkan...' : 'Kirim Pendaftaran Anggota'}</span>
+            <i className="bx bx-user-plus"></i> {isSubmitting ? 'Mendaftarkan...' : 'Kirim Pendaftaran Anggota'}
           </button>
         </form>
 
-        <div className="mt-6 text-center text-xs text-zinc-500">
-          Sudah memiliki akun?{' '}
-          <Link href="/login" className="font-semibold text-blue-600 hover:underline">
-            Masuk di sini
-          </Link>
+        <div style={{ marginTop: '24px', paddingTop: '20px', borderTop: '1px solid var(--card-border)', textAlign: 'center', fontSize: '13px', color: 'var(--text-muted)' }}>
+          Sudah memiliki akun? <Link href="/login" style={{ fontWeight: 600 }}>Masuk di sini</Link>
         </div>
       </div>
     </div>

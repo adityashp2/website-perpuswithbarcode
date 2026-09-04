@@ -2,25 +2,11 @@
 
 import React, { useState } from 'react';
 import { useData } from '@/lib/dataContext';
-import { useAuth } from '@/lib/authContext';
 import BarcodeModal from '@/components/BarcodeModal';
 import { Buku } from '@/types/database';
-import { 
-  Plus, 
-  Search, 
-  Barcode, 
-  Trash2, 
-  Edit, 
-  BookOpen, 
-  Check, 
-  X, 
-  Layers,
-  ArrowUpDown
-} from 'lucide-react';
 
 export default function AdminBukuPage() {
   const { buku, katalog, penerbit, pengarang, addBuku, deleteBuku, updateStok } = useData();
-  const { isAdmin } = useAuth();
 
   const [search, setSearch] = useState('');
   const [selectedBarcodeBuku, setSelectedBarcodeBuku] = useState<Buku | null>(null);
@@ -89,331 +75,353 @@ export default function AdminBukuPage() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-zinc-900 dark:text-white">
-            Kelola Koleksi Buku & Barcode
-          </h1>
-          <p className="text-xs text-zinc-500 mt-1">
-            Tambah judul koleksi baru, perbarui kuota stok eksemplar, dan cetak stiker barcode ISBN
-          </p>
+    <>
+      <div className="page-header">
+        <div className="page-header-info">
+          <h1>Manajemen Data Buku</h1>
+          <p>Total {buku.length} judul buku tersimpan dalam basis data perpustakaan.</p>
         </div>
-
-        <button
-          onClick={() => setShowAddModal(true)}
-          className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-md shadow-blue-500/20 transition-all shrink-0"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Tambah Judul Buku Baru</span>
-        </button>
+        <div className="page-actions" style={{ display: 'flex', gap: '8px' }}>
+          <button
+            onClick={() => {
+              if (buku.length > 0) setSelectedBarcodeBuku(buku[0]);
+            }}
+            className="btn btn-secondary"
+          >
+            <i className="bx bx-barcode"></i> Cetak Label Barcode
+          </button>
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="btn btn-primary"
+          >
+            <i className="bx bx-plus-circle"></i> Tambah Buku Baru
+          </button>
+        </div>
       </div>
 
-      {/* Search Bar */}
-      <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-4 mb-6 shadow-sm flex items-center gap-3">
-        <Search className="w-4 h-4 text-zinc-400 shrink-0" />
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Cari berdasarkan judul, ISBN, atau nama pengarang..."
-          className="w-full bg-transparent text-xs text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none"
-        />
+      {/* Search Input Bar */}
+      <div className="card" style={{ marginBottom: '20px', padding: '14px 20px' }}>
+        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+          <i className="bx bx-search" style={{ fontSize: '20px', color: 'var(--text-muted)' }}></i>
+          <input
+            type="text"
+            className="form-control"
+            placeholder="Cari berdasarkan judul buku, nomor ISBN, atau nama pengarang..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            style={{ border: 'none', background: 'transparent', padding: '4px 0' }}
+          />
+        </div>
       </div>
 
-      {/* Table */}
-      <div className="bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-zinc-800 overflow-hidden shadow-sm">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead className="bg-zinc-50 dark:bg-zinc-950/50 text-zinc-500 font-semibold border-b border-zinc-100 dark:border-zinc-800">
+      <div className="card">
+        <div className="table-responsive">
+          <table className="table-modern">
+            <thead>
               <tr>
-                <th className="p-4">Cover & Judul</th>
-                <th className="p-4">ISBN / Barcode</th>
-                <th className="p-4">Kategori & Penerbit</th>
-                <th className="p-4">Stok</th>
-                <th className="p-4 text-right">Aksi</th>
+                <th style={{ width: '90px' }}>Cover</th>
+                <th style={{ width: '130px' }}>ISBN / Barcode</th>
+                <th>Judul Buku</th>
+                <th>Pengarang</th>
+                <th>Penerbit</th>
+                <th style={{ width: '80px' }}>Tahun</th>
+                <th>Kategori</th>
+                <th style={{ width: '90px', textAlign: 'center' }}>Stok</th>
+                <th style={{ width: '170px', textAlign: 'center' }}>Aksi</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
-              {filteredBuku.map((item) => (
-                <tr key={item.isbn} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/40">
-                  <td className="p-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-14 bg-zinc-100 dark:bg-zinc-800 rounded overflow-hidden shrink-0 flex items-center justify-center">
-                        {item.foto ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={item.foto}
-                            alt=""
-                            className="max-h-full object-contain"
-                          />
-                        ) : (
-                          <BookOpen className="w-5 h-5 text-zinc-400" />
-                        )}
-                      </div>
-                      <div>
-                        <span className="font-bold text-sm text-zinc-900 dark:text-white block">
-                          {item.judul}
-                        </span>
-                        <span className="text-[11px] text-zinc-500">
-                          Pengarang: {item.pengarang?.nama_pengarang || '-'} • Tahun {item.tahun}
-                        </span>
-                      </div>
-                    </div>
-                  </td>
-
-                  <td className="p-4">
-                    <span className="font-mono text-xs font-bold text-zinc-800 dark:text-zinc-200 block">
-                      {item.isbn}
-                    </span>
-                    <button
-                      onClick={() => setSelectedBarcodeBuku(item)}
-                      className="mt-1 text-[11px] font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-1"
-                    >
-                      <Barcode className="w-3.5 h-3.5" />
-                      Cetak Barcode
-                    </button>
-                  </td>
-
-                  <td className="p-4">
-                    <span className="px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 text-[10px] font-semibold block w-fit mb-1">
-                      {item.katalog?.nama || item.id_katalog}
-                    </span>
-                    <span className="text-zinc-500 text-[11px]">
-                      {item.penerbit?.nama_penerbit || '-'}
-                    </span>
-                  </td>
-
-                  <td className="p-4">
-                    <div className="flex items-center gap-2">
-                      <span className={`font-bold text-sm ${item.qty_stok > 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-                        {item.qty_stok}
-                      </span>
-                      <button
-                        onClick={() => {
-                          setEditingStokBuku({ isbn: item.isbn, current: item.qty_stok });
-                          setNewStokVal(item.qty_stok);
-                        }}
-                        className="p-1 rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-400 hover:text-zinc-600"
-                        title="Perbarui Stok"
-                      >
-                        <ArrowUpDown className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  </td>
-
-                  <td className="p-4 text-right">
-                    <button
-                      onClick={() => {
-                        if (confirm(`Yakin ingin menghapus buku "${item.judul}"?`)) {
-                          deleteBuku(item.isbn);
-                        }
-                      }}
-                      className="p-2 text-zinc-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg transition-colors"
-                      title="Hapus Buku"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+            <tbody>
+              {filteredBuku.length === 0 ? (
+                <tr>
+                  <td colSpan={9} style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
+                    <i className="bx bx-book-open" style={{ fontSize: '36px', display: 'block', marginBottom: '8px', color: 'var(--text-light)' }}></i>
+                    Belum ada data buku yang sesuai. Klik tombol &quot;Tambah Buku Baru&quot; untuk menambahkan.
                   </td>
                 </tr>
-              ))}
+              ) : (
+                filteredBuku.map((b) => (
+                  <tr key={b.isbn}>
+                    <td>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={b.foto || '/default-book-cover.svg'}
+                        alt={b.judul}
+                        style={{
+                          width: '62px',
+                          height: '78px',
+                          objectFit: 'cover',
+                          borderRadius: '10px',
+                          border: '1px solid var(--card-border)',
+                          background: '#f8fafc',
+                        }}
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = '/default-book-cover.svg';
+                        }}
+                      />
+                    </td>
+
+                    <td>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'flex-start' }}>
+                        <span style={{ fontFamily: 'monospace', fontWeight: 700, fontSize: '12px', color: 'var(--primary)' }}>
+                          {b.isbn}
+                        </span>
+                        <button
+                          onClick={() => setSelectedBarcodeBuku(b)}
+                          className="btn btn-secondary btn-sm"
+                          style={{ padding: '2px 8px', fontSize: '11px', gap: '4px' }}
+                          title="Cetak Barcode Buku"
+                        >
+                          <i className="bx bx-barcode"></i> Cetak
+                        </button>
+                      </div>
+                    </td>
+
+                    <td>
+                      <strong style={{ color: '#0f172a', fontSize: '14px', display: 'block', marginBottom: '2px' }}>
+                        {b.judul}
+                      </strong>
+                      <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+                        Maks Pinjam: {b.maks_pinjam_per_anggota || 1} eks / akun
+                      </span>
+                    </td>
+
+                    <td>{b.pengarang?.nama_pengarang || '-'}</td>
+                    <td>{b.penerbit?.nama_penerbit || '-'}</td>
+                    <td>{b.tahun}</td>
+
+                    <td>
+                      <span className="badge badge-info">
+                        {b.katalog?.nama || b.id_katalog}
+                      </span>
+                    </td>
+
+                    <td style={{ textAlign: 'center' }}>
+                      <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                        <span className={`badge ${b.qty_stok > 0 ? 'badge-success' : 'badge-danger'}`} style={{ fontWeight: 700 }}>
+                          {b.qty_stok}
+                        </span>
+                        <button
+                          onClick={() => {
+                            setEditingStokBuku({ isbn: b.isbn, current: b.qty_stok });
+                            setNewStokVal(b.qty_stok);
+                          }}
+                          className="btn btn-secondary btn-sm"
+                          style={{ padding: '3px 6px' }}
+                          title="Ubah Kuota Stok"
+                        >
+                          <i className="bx bx-edit-alt"></i>
+                        </button>
+                      </div>
+                    </td>
+
+                    <td style={{ textAlign: 'center' }}>
+                      <div style={{ display: 'inline-flex', gap: '6px' }}>
+                        <button
+                          onClick={() => setSelectedBarcodeBuku(b)}
+                          className="btn btn-secondary btn-sm"
+                          title="Pratinjau Barcode"
+                        >
+                          <i className="bx bx-barcode"></i>
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (confirm(`Yakin ingin menghapus buku "${b.judul}"?`)) {
+                              deleteBuku(b.isbn);
+                            }
+                          }}
+                          className="btn btn-danger btn-sm"
+                          title="Hapus Buku"
+                        >
+                          <i className="bx bx-trash"></i>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
       </div>
 
-      {/* Stock Edit Modal */}
+      {/* Modal Ubah Stok */}
       {editingStokBuku && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-          <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-6 w-full max-w-sm shadow-xl">
-            <h3 className="font-bold text-base text-zinc-900 dark:text-white mb-2">
-              Perbarui Stok Buku
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(15, 23, 42, 0.6)',
+          backdropFilter: 'blur(4px)',
+          zIndex: 50,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '20px'
+        }}>
+          <div className="card" style={{ maxWidth: '400px', width: '100%', padding: '24px' }}>
+            <h3 style={{ fontSize: '16px', fontWeight: 700, margin: '0 0 12px' }}>
+              Update Stok Buku
             </h3>
-            <p className="text-xs text-zinc-500 mb-4">
-              ISBN: <span className="font-mono">{editingStokBuku.isbn}</span>
+            <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '16px' }}>
+              ISBN: <code style={{ color: 'var(--primary)' }}>{editingStokBuku.isbn}</code>
             </p>
-            <div className="mb-4">
-              <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
-                Jumlah Stok Baru
-              </label>
+            <div className="form-group">
+              <label className="form-label">Jumlah Eksemplar Tersedia</label>
               <input
                 type="number"
                 min="0"
+                className="form-control"
                 value={newStokVal}
                 onChange={(e) => setNewStokVal(parseInt(e.target.value) || 0)}
-                className="w-full px-4 py-2 text-sm bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl focus:outline-none focus:border-blue-500 text-zinc-900 dark:text-white"
               />
             </div>
-            <div className="flex items-center justify-end gap-2">
-              <button
-                onClick={() => setEditingStokBuku(null)}
-                className="px-4 py-2 text-xs font-semibold text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 rounded-lg"
-              >
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '20px' }}>
+              <button onClick={() => setEditingStokBuku(null)} className="btn btn-secondary">
                 Batal
               </button>
-              <button
-                onClick={handleUpdateStokSubmit}
-                className="px-4 py-2 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg"
-              >
-                Simpan Stok
+              <button onClick={handleUpdateStokSubmit} className="btn btn-primary">
+                Simpan Perubahan
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Add Book Modal */}
+      {/* Modal Tambah Buku */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
-          <div className="bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-zinc-800 p-6 md:p-8 w-full max-w-lg shadow-2xl my-8">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-bold text-zinc-900 dark:text-white">
-                Tambah Judul Buku Baru
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(15, 23, 42, 0.6)',
+          backdropFilter: 'blur(4px)',
+          zIndex: 50,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '20px',
+          overflowY: 'auto'
+        }}>
+          <div className="card" style={{ maxWidth: '600px', width: '100%', padding: '28px', margin: 'auto' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <h2 style={{ fontSize: '18px', fontWeight: 700, margin: 0 }}>
+                Tambah Buku Baru
               </h2>
-              <button
-                onClick={() => setShowAddModal(false)}
-                className="p-1.5 text-zinc-400 hover:text-zinc-600 rounded-lg"
-              >
-                <X className="w-5 h-5" />
+              <button onClick={() => setShowAddModal(false)} className="btn btn-secondary btn-sm" style={{ padding: '4px 8px' }}>
+                <i className="bx bx-x" style={{ fontSize: '18px' }}></i>
               </button>
             </div>
 
-            <form onSubmit={handleSaveBook} className="space-y-4 text-xs">
-              <div>
-                <label className="block font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
-                  Nomor ISBN (Akan Jadi Barcode) *
-                </label>
+            <form onSubmit={handleSaveBook}>
+              <div className="form-group">
+                <label className="form-label">Nomor ISBN (Otomatis Jadi Barcode) <span className="required">*</span></label>
                 <input
                   type="text"
                   required
+                  className="form-control"
+                  placeholder="Contoh: 978-623-01-0812-7"
                   value={formData.isbn}
                   onChange={(e) => setFormData({ ...formData, isbn: e.target.value })}
-                  placeholder="Contoh: 978-623-01-0812-7"
-                  className="w-full px-3.5 py-2 text-sm bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl focus:outline-none focus:border-blue-500 text-zinc-900 dark:text-white font-mono"
                 />
               </div>
 
-              <div>
-                <label className="block font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
-                  Judul Buku Lengkap *
-                </label>
+              <div className="form-group">
+                <label className="form-label">Judul Lengkap Buku <span className="required">*</span></label>
                 <input
                   type="text"
                   required
+                  className="form-control"
+                  placeholder="Judul buku"
                   value={formData.judul}
                   onChange={(e) => setFormData({ ...formData, judul: e.target.value })}
-                  placeholder="Judul buku"
-                  className="w-full px-3.5 py-2 text-sm bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl focus:outline-none focus:border-blue-500 text-zinc-900 dark:text-white"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
-                    Tahun Terbit
-                  </label>
+              <div className="form-grid">
+                <div className="form-group">
+                  <label className="form-label">Tahun Terbit</label>
                   <input
                     type="number"
+                    className="form-control"
                     value={formData.tahun}
                     onChange={(e) => setFormData({ ...formData, tahun: parseInt(e.target.value) || 2024 })}
-                    className="w-full px-3.5 py-2 text-sm bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl focus:outline-none focus:border-blue-500 text-zinc-900 dark:text-white"
                   />
                 </div>
 
-                <div>
-                  <label className="block font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
-                    Jumlah Stok
-                  </label>
+                <div className="form-group">
+                  <label className="form-label">Jumlah Stok Eksemplar</label>
                   <input
                     type="number"
                     min="1"
+                    className="form-control"
                     value={formData.qty_stok}
                     onChange={(e) => setFormData({ ...formData, qty_stok: parseInt(e.target.value) || 1 })}
-                    className="w-full px-3.5 py-2 text-sm bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl focus:outline-none focus:border-blue-500 text-zinc-900 dark:text-white"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-3">
-                <div>
-                  <label className="block font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
-                    Kategori
-                  </label>
+              <div className="form-grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
+                <div className="form-group">
+                  <label className="form-label">Katalog Kategori</label>
                   <select
+                    className="form-control"
                     value={formData.id_katalog}
                     onChange={(e) => setFormData({ ...formData, id_katalog: e.target.value })}
-                    className="w-full px-3 py-2 text-xs bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-zinc-900 dark:text-white"
                   >
                     {katalog.map((k) => (
-                      <option key={k.id_katalog} value={k.id_katalog}>
-                        {k.nama}
-                      </option>
+                      <option key={k.id_katalog} value={k.id_katalog}>{k.nama}</option>
                     ))}
                   </select>
                 </div>
 
-                <div>
-                  <label className="block font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
-                    Penerbit
-                  </label>
+                <div className="form-group">
+                  <label className="form-label">Penerbit</label>
                   <select
+                    className="form-control"
                     value={formData.id_penerbit}
                     onChange={(e) => setFormData({ ...formData, id_penerbit: e.target.value })}
-                    className="w-full px-3 py-2 text-xs bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-zinc-900 dark:text-white"
                   >
                     {penerbit.map((p) => (
-                      <option key={p.id_penerbit} value={p.id_penerbit}>
-                        {p.nama_penerbit}
-                      </option>
+                      <option key={p.id_penerbit} value={p.id_penerbit}>{p.nama_penerbit}</option>
                     ))}
                   </select>
                 </div>
 
-                <div>
-                  <label className="block font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
-                    Pengarang
-                  </label>
+                <div className="form-group">
+                  <label className="form-label">Pengarang</label>
                   <select
+                    className="form-control"
                     value={formData.id_pengarang}
                     onChange={(e) => setFormData({ ...formData, id_pengarang: e.target.value })}
-                    className="w-full px-3 py-2 text-xs bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-zinc-900 dark:text-white"
                   >
                     {pengarang.map((p) => (
-                      <option key={p.id_pengarang} value={p.id_pengarang}>
-                        {p.nama_pengarang}
-                      </option>
+                      <option key={p.id_pengarang} value={p.id_pengarang}>{p.nama_pengarang}</option>
                     ))}
                   </select>
                 </div>
               </div>
 
-              <div>
-                <label className="block font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
-                  URL / Path Foto Sampul (Opsional)
-                </label>
+              <div className="form-group">
+                <label className="form-label">Path Foto Cover (Opsional)</label>
                 <input
                   type="text"
+                  className="form-control"
+                  placeholder="/buku/nama_gambar.jpg atau default"
                   value={formData.foto}
                   onChange={(e) => setFormData({ ...formData, foto: e.target.value })}
-                  placeholder="/buku/nama_gambar.jpg atau URL online"
-                  className="w-full px-3.5 py-2 text-sm bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl focus:outline-none focus:border-blue-500 text-zinc-900 dark:text-white"
                 />
               </div>
 
-              <div className="pt-4 flex items-center justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={() => setShowAddModal(false)}
-                  className="px-4 py-2.5 font-semibold text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 rounded-xl"
-                >
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '20px' }}>
+                <button type="button" onClick={() => setShowAddModal(false)} className="btn btn-secondary">
                   Batal
                 </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-sm"
-                >
-                  Simpan Buku
+                <button type="submit" className="btn btn-primary">
+                  <i className="bx bx-save"></i> Simpan Buku
                 </button>
               </div>
             </form>
@@ -421,13 +429,12 @@ export default function AdminBukuPage() {
         </div>
       )}
 
-      {/* Barcode Modal */}
       {selectedBarcodeBuku && (
         <BarcodeModal
           buku={selectedBarcodeBuku}
           onClose={() => setSelectedBarcodeBuku(null)}
         />
       )}
-    </div>
+    </>
   );
 }

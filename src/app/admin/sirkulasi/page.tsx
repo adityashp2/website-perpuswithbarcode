@@ -4,255 +4,329 @@ import React, { useState } from 'react';
 import { useData } from '@/lib/dataContext';
 import { useAuth } from '@/lib/authContext';
 import { Peminjaman } from '@/types/database';
-import { 
-  RotateCcw, 
-  Check, 
-  X, 
-  Clock, 
-  AlertCircle, 
-  Calendar, 
-  User, 
-  BookOpen, 
-  DollarSign,
-  Search,
-  CheckCircle2
-} from 'lucide-react';
 
 export default function AdminSirkulasiPage() {
   const { peminjaman, config, accPinjam, tolakPinjam, accKembali } = useData();
   const { isAdmin } = useAuth();
 
-  const [activeTab, setActiveTab] = useState<string>('ALL');
-  const [search, setSearch] = useState('');
-  
-  // Return Confirm Modal State
-  const [selectedReturnLoan, setSelectedReturnLoan] = useState<Peminjaman | null>(null);
-  const [calculatedDenda, setCalculatedDenda] = useState<number>(0);
-  const [lateDays, setLateDays] = useState<number>(0);
+  const [activeTab, setActiveTab] = useState<'pending' | 'dipinjam' | 'kembali' | 'selesai'>('pending');
+  const [scanIsbn, setScanIsbn] = useState('');
+  const [scanResult, setScanResult] = useState<Peminjaman | null>(null);
+  const [scanError, setScanError] = useState('');
   const [feedback, setFeedback] = useState<string | null>(null);
 
-  const calculateFines = (targetDateStr: string) => {
+  // Return modal state
+  const [selectedReturn, setSelectedReturn] = useState<Peminjaman | null>(null);
+  const [dendaVal, setDendaVal] = useState<number>(0);
+  const [lateDays, setLateDays] = useState<number>(0);
+
+  const dendaPerHari = config.dendaPerHari || 500;
+
+  const calculateLate = (targetDateStr: string) => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const target = new Date(targetDateStr);
     target.setHours(0, 0, 0, 0);
 
-    const diffTime = today.getTime() - target.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-    if (diffDays > 0) {
-      const fine = diffDays * (config.dendaPerHari || 500);
-      return { days: diffDays, fine };
+    const diff = today.getTime() - target.getTime();
+    const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
+    if (days > 0) {
+      return { days, denda: days * dendaPerHari };
     }
-    return { days: 0, fine: 0 };
+    return { days: 0, denda: 0 };
   };
 
-  const handleOpenReturnModal = (loan: Peminjaman) => {
-    const { days, fine } = calculateFines(loan.tgl_kembali);
-    setSelectedReturnLoan(loan);
+  const pendingList = peminjaman.filter((p) => p.status === 'MENUNGGU_ACC');
+  const dipinjamList = peminjaman.filter((p) => p.status === 'DIPINJAM');
+  const kembaliList = peminjaman.filter((p) => p.status === 'MENUNGGU_KEMBALI');
+  const selesaiList = peminjaman.filter((p) => p.status === 'DIKEMBALIKAN' || p.status === 'DITOLAK');
+
+  const handleScan = (e: React.FormEvent) => {
+    e.preventDefault();
+    setScanError('');
+    setScanResult(null);
+
+    const target = peminjaman.find(
+      (p) =>
+        p.details?.some((d) => d.isbn.toLowerCase() === scanIsbn.trim().toLowerCase()) &&
+        (p.status === 'MENUNGGU_ACC' || p.status === 'DIPINJAM' || p.status === 'MENUNGGU_KEMBALI')
+    );
+
+    if (target) {
+      setScanResult(target);
+    } else {
+      setScanError(`ISBN / Barcode "${scanIsbn}" tidak ditemukan pada sirkulasi aktif.`);
+    }
+  };
+
+  const handleOpenKembaliModal = (p: Peminjaman) => {
+    const { days, denda } = calculateLate(p.tgl_kembali);
+    setSelectedReturn(p);
     setLateDays(days);
-    setCalculatedDenda(fine);
+    setDendaVal(denda);
   };
 
-  const handleConfirmReturn = async () => {
-    if (selectedReturnLoan) {
-      await accKembali(selectedReturnLoan.id_pinjam, calculatedDenda);
-      setSelectedReturnLoan(null);
-      setFeedback(`Buku berhasil dikembalikan! Denda tercatat: Rp ${calculatedDenda.toLocaleString('id-ID')}`);
+  const handleConfirmKembali = async () => {
+    if (selectedReturn) {
+      await accKembali(selectedReturn.id_pinjam, dendaVal);
+      setSelectedReturn(null);
+      setFeedback(`Pengembalian berhasil dicatat! Denda: Rp ${dendaVal.toLocaleString('id-ID')}`);
       setTimeout(() => setFeedback(null), 4000);
     }
   };
 
-  const filteredPeminjaman = peminjaman.filter((p) => {
-    const matchTab = activeTab === 'ALL' || p.status === activeTab;
-    const matchSearch =
-      search.trim() === '' ||
-      p.anggota?.nama.toLowerCase().includes(search.toLowerCase()) ||
-      p.details?.[0]?.buku?.judul.toLowerCase().includes(search.toLowerCase()) ||
-      p.details?.[0]?.isbn.includes(search);
-    return matchTab && matchSearch;
-  });
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'MENUNGGU_ACC':
-        return <span className="px-2.5 py-1 text-xs font-bold rounded-full bg-amber-100 text-amber-800 dark:bg-amber-950/70 dark:text-amber-300">Menunggu ACC Pinjam</span>;
-      case 'DIPINJAM':
-        return <span className="px-2.5 py-1 text-xs font-bold rounded-full bg-blue-100 text-blue-800 dark:bg-blue-950/70 dark:text-blue-300">Sedang Dipinjam</span>;
-      case 'MENUNGGU_KEMBALI':
-        return <span className="px-2.5 py-1 text-xs font-bold rounded-full bg-purple-100 text-purple-800 dark:bg-purple-950/70 dark:text-purple-300">Menunggu ACC Kembali</span>;
-      case 'DIKEMBALIKAN':
-        return <span className="px-2.5 py-1 text-xs font-bold rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950/70 dark:text-emerald-300">Selesai Dikembalikan</span>;
-      case 'DITOLAK':
-        return <span className="px-2.5 py-1 text-xs font-bold rounded-full bg-rose-100 text-rose-800 dark:bg-rose-950/70 dark:text-rose-300">Ditolak</span>;
-      default:
-        return <span className="px-2.5 py-1 text-xs font-bold rounded-full bg-zinc-100 text-zinc-800">{status}</span>;
-    }
-  };
+  const currentList =
+    activeTab === 'pending'
+      ? pendingList
+      : activeTab === 'dipinjam'
+      ? dipinjamList
+      : activeTab === 'kembali'
+      ? kembaliList
+      : selesaiList;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-zinc-900 dark:text-white">
-          Sirkulasi Peminjaman & Pengembalian
-        </h1>
-        <p className="text-xs text-zinc-500 mt-1">
-          Persetujuan peminjaman buku fisik, pemantauan batas pengembalian, dan kalkulasi denda keterlambatan otomatis
-        </p>
+    <>
+      {/* Page Header */}
+      <div className="page-header">
+        <div className="page-header-info">
+          <h1>
+            <i className="bx bx-check-shield" style={{ color: 'var(--primary)' }}></i> Panel ACC Sirkulasi
+          </h1>
+          <p>Verifikasi, setujui, atau tolak permohonan peminjaman dan pengembalian buku dari anggota.</p>
+        </div>
+        <div className="page-actions" style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          {pendingList.length > 0 && (
+            <span className="badge badge-warning" style={{ fontSize: '13px', padding: '8px 14px' }}>
+              <i className="bx bx-time"></i> {pendingList.length} Permohonan Pinjam
+            </span>
+          )}
+          {kembaliList.length > 0 && (
+            <span className="badge badge-info" style={{ fontSize: '13px', padding: '8px 14px' }}>
+              <i className="bx bx-package"></i> {kembaliList.length} Permintaan Kembali
+            </span>
+          )}
+        </div>
       </div>
 
       {feedback && (
-        <div className="mb-6 p-4 rounded-2xl bg-emerald-50 text-emerald-800 border border-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-300 flex items-center gap-3 text-sm font-medium">
-          <CheckCircle2 className="w-5 h-5 shrink-0" />
-          <span>{feedback}</span>
+        <div className="alert alert-success">
+          <i className="bx bx-check-circle" style={{ fontSize: '20px' }}></i>
+          <div>{feedback}</div>
         </div>
       )}
 
-      {/* Tabs and Search Bar */}
-      <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-6">
-        <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
-          {[
-            { id: 'ALL', label: 'Semua Status' },
-            { id: 'MENUNGGU_ACC', label: 'Antrean Pinjam' },
-            { id: 'DIPINJAM', label: 'Sedang Dipinjam' },
-            { id: 'MENUNGGU_KEMBALI', label: 'Antrean Kembali' },
-            { id: 'DIKEMBALIKAN', label: 'Selesai' },
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all ${
-                activeTab === tab.id
-                  ? 'bg-blue-600 text-white shadow-sm'
-                  : 'bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100'
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-
-        <div className="relative w-full md:w-72">
-          <Search className="w-4 h-4 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2" />
+      {/* Barcode Scanner Bar */}
+      <div className="card" style={{ marginBottom: '24px', padding: '18px 24px' }}>
+        <form onSubmit={handleScan} style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 600, color: 'var(--text-main)', fontSize: '14px' }}>
+            <i className="bx bx-barcode-reader" style={{ fontSize: '22px', color: 'var(--primary)' }}></i>
+            <span>Scan Barcode ISBN:</span>
+          </div>
           <input
             type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Cari nama anggota / judul..."
-            className="w-full pl-9 pr-4 py-1.5 text-xs bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl focus:outline-none focus:border-blue-500 text-zinc-900 dark:text-white"
+            className="form-control"
+            placeholder="Arahkan scanner atau ketik nomor ISBN buku lalu tekan Enter..."
+            value={scanIsbn}
+            onChange={(e) => setScanIsbn(e.target.value)}
+            style={{ flex: 1, minWidth: '240px' }}
           />
-        </div>
+          <button type="submit" className="btn btn-primary">
+            <i className="bx bx-search"></i> Cari Data
+          </button>
+        </form>
+
+        {scanError && (
+          <div className="alert alert-error" style={{ marginTop: '16px', marginBottom: 0 }}>
+            <i className="bx bx-error-circle" style={{ fontSize: '18px' }}></i>
+            <div>{scanError}</div>
+          </div>
+        )}
+
+        {scanResult && (
+          <div style={{ marginTop: '16px', padding: '14px', background: '#f8fafc', border: '1px solid var(--card-border)', borderRadius: 'var(--radius-md)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <strong>Hasil Scan: TRX-{scanResult.id_pinjam}</strong> &bull; Peminjam: <strong>{scanResult.anggota?.nama}</strong>
+                <p style={{ margin: '4px 0 0', fontSize: '13px', color: 'var(--text-muted)' }}>
+                  Buku: {scanResult.details?.[0]?.buku?.judul} ({scanResult.details?.[0]?.isbn})
+                </p>
+              </div>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                {scanResult.status === 'MENUNGGU_ACC' && (
+                  <button onClick={() => accPinjam(scanResult.id_pinjam)} className="btn btn-success btn-sm">
+                    <i className="bx bx-check"></i> ACC Pinjam
+                  </button>
+                )}
+                {(scanResult.status === 'DIPINJAM' || scanResult.status === 'MENUNGGU_KEMBALI') && (
+                  <button onClick={() => handleOpenKembaliModal(scanResult)} className="btn btn-info btn-sm">
+                    <i className="bx bx-package"></i> ACC Kembali
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Table */}
-      <div className="bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-zinc-800 overflow-hidden shadow-sm">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead className="bg-zinc-50 dark:bg-zinc-950/50 text-zinc-500 font-semibold border-b border-zinc-100 dark:border-zinc-800">
+      {/* Tabs Navigation */}
+      <div style={{ display: 'flex', gap: '8px', marginBottom: '20px', flexWrap: 'wrap' }}>
+        {[
+          { id: 'pending', label: 'Permohonan Pinjam', icon: 'bx-time', count: pendingList.length, color: 'var(--warning)' },
+          { id: 'dipinjam', label: 'Sedang Dipinjam', icon: 'bx-book-open', count: dipinjamList.length, color: 'var(--primary)' },
+          { id: 'kembali', label: 'Permintaan Pengembalian', icon: 'bx-package', count: kembaliList.length, color: 'var(--info)' },
+          { id: 'selesai', label: 'Riwayat Selesai', icon: 'bx-history', count: selesaiList.length, color: 'var(--success)' },
+        ].map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id as typeof activeTab)}
+            className={`btn ${activeTab === tab.id ? 'btn-primary' : 'btn-secondary'}`}
+            style={{ borderRadius: 'var(--radius-md)', padding: '10px 18px', gap: '8px' }}
+          >
+            <i className={`bx ${tab.icon}`}></i>
+            <span>{tab.label}</span>
+            {tab.count > 0 && (
+              <span style={{
+                background: activeTab === tab.id ? '#ffffff' : tab.color,
+                color: activeTab === tab.id ? 'var(--primary)' : '#ffffff',
+                fontWeight: 700,
+                fontSize: '11px',
+                padding: '2px 8px',
+                borderRadius: 'var(--radius-full)'
+              }}>
+                {tab.count}
+              </span>
+            )}
+          </button>
+        ))}
+      </div>
+
+      {/* Table Card */}
+      <div className="card">
+        <div className="card-header">
+          <div className="card-title">
+            <i className="bx bx-list-ul"></i>
+            <span>
+              {activeTab === 'pending' && 'Daftar Permohonan Peminjaman Menunggu ACC'}
+              {activeTab === 'dipinjam' && 'Daftar Buku yang Sedang Dipinjam Anggota'}
+              {activeTab === 'kembali' && 'Daftar Permintaan Pengembalian Buku'}
+              {activeTab === 'selesai' && 'Arsip Transaksi Sirkulasi Selesai'}
+            </span>
+          </div>
+          <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
+            Total: {currentList.length} data
+          </span>
+        </div>
+
+        <div className="table-responsive">
+          <table className="table-modern">
+            <thead>
               <tr>
-                <th className="p-4">ID Transaksi</th>
-                <th className="p-4">Anggota Peminjam</th>
-                <th className="p-4">Buku & ISBN</th>
-                <th className="p-4">Tgl Pinjam / Batas</th>
-                <th className="p-4">Status</th>
-                <th className="p-4 text-right">Aksi Petugas</th>
+                <th style={{ width: '80px' }}>ID</th>
+                <th>Anggota Peminjam</th>
+                <th>Daftar Buku &amp; ISBN</th>
+                <th>Tgl Pinjam</th>
+                <th>Batas Kembali</th>
+                <th>Status</th>
+                <th style={{ textAlign: 'right', width: '200px' }}>Aksi Petugas</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
-              {filteredPeminjaman.length === 0 ? (
+            <tbody>
+              {currentList.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="p-8 text-center text-zinc-400">
-                    Tidak ada transaksi sirkulasi pada kategori ini.
+                  <td colSpan={7} style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
+                    <i className="bx bx-folder-open" style={{ fontSize: '36px', display: 'block', marginBottom: '8px', color: '#cbd5e1' }}></i>
+                    Tidak ada data transaksi pada tab ini.
                   </td>
                 </tr>
               ) : (
-                filteredPeminjaman.map((p) => {
-                  const book = p.details?.[0]?.buku;
-                  const { days, fine } = calculateFines(p.tgl_kembali);
-                  const isOverdue = days > 0 && p.status === 'DIPINJAM';
+                currentList.map((row) => {
+                  const book = row.details?.[0]?.buku;
+                  const { days, denda } = calculateLate(row.tgl_kembali);
+                  const isLate = days > 0 && (row.status === 'DIPINJAM' || row.status === 'MENUNGGU_KEMBALI');
 
                   return (
-                    <tr key={p.id_pinjam} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/40">
-                      <td className="p-4 font-mono font-bold text-zinc-500">
-                        TRX-{p.id_pinjam}
+                    <tr key={row.id_pinjam}>
+                      <td>
+                        <span style={{ fontFamily: 'monospace', fontWeight: 700, color: 'var(--text-muted)' }}>
+                          #{row.id_pinjam}
+                        </span>
                       </td>
 
-                      <td className="p-4">
-                        <div className="flex items-center gap-2">
-                          <div className="w-7 h-7 rounded-full bg-blue-50 dark:bg-blue-950/80 text-blue-600 flex items-center justify-center font-bold text-xs">
-                            {p.anggota?.nama?.[0] || 'U'}
-                          </div>
-                          <div>
-                            <span className="font-bold text-zinc-900 dark:text-white block">
-                              {p.anggota?.nama || `Anggota #${p.id_anggota}`}
-                            </span>
-                            <span className="text-[10px] text-zinc-400">
-                              Status KTM: {p.anggota?.status_verifikasi || 'TERVERIFIKASI'}
-                            </span>
-                          </div>
+                      <td>
+                        <strong>{row.anggota?.nama || `Anggota #${row.id_anggota}`}</strong>
+                        <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+                          {row.anggota?.email || '-'}
                         </div>
                       </td>
 
-                      <td className="p-4">
-                        <span className="font-bold text-zinc-900 dark:text-white block">
+                      <td>
+                        <div style={{ fontWeight: 600, color: '#0f172a' }}>
                           {book?.judul || 'Buku Perpustakaan'}
-                        </span>
-                        <span className="font-mono text-[10px] text-zinc-400">
-                          {p.details?.[0]?.isbn}
-                        </span>
-                      </td>
-
-                      <td className="p-4">
-                        <div className="space-y-0.5">
-                          <span className="text-zinc-600 dark:text-zinc-400 block">
-                            Pinjam: {p.tgl_pinjam}
-                          </span>
-                          <span className={`block font-semibold ${isOverdue ? 'text-rose-600' : 'text-zinc-800 dark:text-zinc-200'}`}>
-                            Batas: {p.tgl_kembali}
-                          </span>
-                          {isOverdue && (
-                            <span className="text-[10px] text-rose-500 font-bold block">
-                              Terlambat {days} hari (Denda: Rp {fine.toLocaleString('id-ID')})
-                            </span>
-                          )}
                         </div>
+                        <span style={{ fontFamily: 'monospace', fontSize: '11px', color: 'var(--text-light)' }}>
+                          ISBN: {row.details?.[0]?.isbn}
+                        </span>
                       </td>
 
-                      <td className="p-4">
-                        {getStatusBadge(p.status)}
+                      <td>{row.tgl_pinjam}</td>
+
+                      <td>
+                        <span style={{ fontWeight: isLate ? 700 : 500, color: isLate ? 'var(--danger)' : 'inherit' }}>
+                          {row.tgl_kembali}
+                        </span>
+                        {isLate && (
+                          <div style={{ fontSize: '11px', color: 'var(--danger)', fontWeight: 600, marginTop: '2px' }}>
+                            <i className="bx bx-error-circle"></i> Terlambat {days} hari (Denda: Rp {denda.toLocaleString('id-ID')})
+                          </div>
+                        )}
                       </td>
 
-                      <td className="p-4 text-right">
-                        <div className="flex items-center justify-end gap-1.5">
-                          {/* When waiting for approval to borrow */}
-                          {p.status === 'MENUNGGU_ACC' && (
+                      <td>
+                        {row.status === 'MENUNGGU_ACC' && (
+                          <span className="badge badge-warning"><i className="bx bx-time"></i> Menunggu ACC</span>
+                        )}
+                        {row.status === 'DIPINJAM' && (
+                          <span className="badge badge-primary"><i className="bx bx-book-open"></i> Dipinjam</span>
+                        )}
+                        {row.status === 'MENUNGGU_KEMBALI' && (
+                          <span className="badge badge-info"><i className="bx bx-package"></i> Minta Kembali</span>
+                        )}
+                        {row.status === 'DIKEMBALIKAN' && (
+                          <span className="badge badge-success"><i className="bx bx-check-circle"></i> Dikembalikan</span>
+                        )}
+                        {row.status === 'DITOLAK' && (
+                          <span className="badge badge-danger"><i className="bx bx-x-circle"></i> Ditolak</span>
+                        )}
+                      </td>
+
+                      <td style={{ textAlign: 'right' }}>
+                        <div style={{ display: 'inline-flex', gap: '6px' }}>
+                          {row.status === 'MENUNGGU_ACC' && (
                             <>
                               <button
-                                onClick={() => accPinjam(p.id_pinjam)}
-                                className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold flex items-center gap-1 shadow-sm"
+                                onClick={() => accPinjam(row.id_pinjam)}
+                                className="btn btn-success btn-sm"
+                                title="Setujui Peminjaman"
                               >
-                                <Check className="w-3.5 h-3.5" />
-                                <span>ACC Pinjam</span>
+                                <i className="bx bx-check"></i> ACC
                               </button>
                               <button
-                                onClick={() => tolakPinjam(p.id_pinjam)}
-                                className="p-1.5 text-zinc-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg"
+                                onClick={() => tolakPinjam(row.id_pinjam)}
+                                className="btn btn-danger btn-sm"
                                 title="Tolak Peminjaman"
                               >
-                                <X className="w-4 h-4" />
+                                <i className="bx bx-x"></i> Tolak
                               </button>
                             </>
                           )}
 
-                          {/* When borrowed or waiting to be returned */}
-                          {(p.status === 'DIPINJAM' || p.status === 'MENUNGGU_KEMBALI') && (
+                          {(row.status === 'DIPINJAM' || row.status === 'MENUNGGU_KEMBALI') && (
                             <button
-                              onClick={() => handleOpenReturnModal(p)}
-                              className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold flex items-center gap-1 shadow-sm"
+                              onClick={() => handleOpenKembaliModal(row)}
+                              className="btn btn-info btn-sm"
+                              title="Konfirmasi Pengembalian Buku"
                             >
-                              <RotateCcw className="w-3.5 h-3.5" />
-                              <span>ACC Kembali</span>
+                              <i className="bx bx-package"></i> ACC Kembali
                             </button>
                           )}
                         </div>
@@ -266,62 +340,67 @@ export default function AdminSirkulasiPage() {
         </div>
       </div>
 
-      {/* Return & Fines Confirmation Modal */}
-      {selectedReturnLoan && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-zinc-800 p-6 md:p-8 w-full max-w-md shadow-2xl">
-            <h3 className="text-lg font-bold text-zinc-900 dark:text-white mb-1">
-              Konfirmasi Pengembalian Buku
-            </h3>
-            <p className="text-xs text-zinc-500 mb-6">
-              Periksa kondisi fisik buku dan hitung tagihan denda keterlambatan
-            </p>
+      {/* Modal ACC Kembali & Denda */}
+      {selectedReturn && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(15, 23, 42, 0.6)',
+          backdropFilter: 'blur(4px)',
+          zIndex: 50,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '20px'
+        }}>
+          <div className="card" style={{ maxWidth: '480px', width: '100%', padding: '28px', animation: 'slideDown 0.3s ease-out' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
+              <div style={{ width: '40px', height: '40px', borderRadius: 'var(--radius-md)', background: 'var(--primary-light)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px' }}>
+                <i className="bx bx-package"></i>
+              </div>
+              <div>
+                <h3 style={{ fontSize: '17px', fontWeight: 700, margin: 0 }}>ACC Pengembalian Buku</h3>
+                <p style={{ fontSize: '12.5px', color: 'var(--text-muted)', margin: 0 }}>Periksa keterlambatan &amp; denda</p>
+              </div>
+            </div>
 
-            <div className="space-y-3 bg-zinc-50 dark:bg-zinc-950/50 p-4 rounded-2xl border border-zinc-100 dark:border-zinc-800 text-xs mb-6">
-              <div className="flex justify-between">
-                <span className="text-zinc-400">Peminjam:</span>
-                <span className="font-bold text-zinc-800 dark:text-zinc-200">
-                  {selectedReturnLoan.anggota?.nama}
-                </span>
+            <div style={{ background: 'var(--bg-main)', padding: '16px', borderRadius: 'var(--radius-md)', marginBottom: '20px', fontSize: '13px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                <span style={{ color: 'var(--text-muted)' }}>Peminjam:</span>
+                <strong>{selectedReturn.anggota?.nama}</strong>
               </div>
-              <div className="flex justify-between">
-                <span className="text-zinc-400">Batas Pengembalian:</span>
-                <span className="font-semibold text-zinc-800 dark:text-zinc-200">
-                  {selectedReturnLoan.tgl_kembali}
-                </span>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                <span style={{ color: 'var(--text-muted)' }}>Batas Waktu:</span>
+                <span>{selectedReturn.tgl_kembali}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-zinc-400">Hari Keterlambatan:</span>
-                <span className={`font-bold ${lateDays > 0 ? 'text-rose-600' : 'text-emerald-600'}`}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                <span style={{ color: 'var(--text-muted)' }}>Keterlambatan:</span>
+                <span style={{ fontWeight: 700, color: lateDays > 0 ? 'var(--danger)' : 'var(--success)' }}>
                   {lateDays > 0 ? `${lateDays} Hari Terlambat` : 'Tepat Waktu (0 Hari)'}
                 </span>
               </div>
-              <div className="pt-2 border-t border-zinc-200 dark:border-zinc-800 flex justify-between items-baseline">
-                <span className="text-zinc-500 font-semibold">Total Denda:</span>
-                <span className="text-base font-extrabold text-blue-600 dark:text-blue-400">
-                  Rp {calculatedDenda.toLocaleString('id-ID')}
+              <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: '10px', borderTop: '1px solid var(--card-border)', alignItems: 'center' }}>
+                <span style={{ fontWeight: 700, color: 'var(--text-main)' }}>Total Denda:</span>
+                <span style={{ fontSize: '18px', fontWeight: 800, color: 'var(--primary)' }}>
+                  Rp {dendaVal.toLocaleString('id-ID')}
                 </span>
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-2">
-              <button
-                onClick={() => setSelectedReturnLoan(null)}
-                className="px-4 py-2 text-xs font-semibold text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 rounded-xl"
-              >
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+              <button onClick={() => setSelectedReturn(null)} className="btn btn-secondary">
                 Batal
               </button>
-              <button
-                onClick={handleConfirmReturn}
-                className="px-5 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-sm flex items-center gap-1.5"
-              >
-                <Check className="w-4 h-4" />
-                <span>Terima & Selesaikan</span>
+              <button onClick={handleConfirmKembali} className="btn btn-success">
+                <i className="bx bx-check"></i> Konfirmasi Terima
               </button>
             </div>
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }

@@ -3,41 +3,50 @@
 import React, { useState } from 'react';
 import { useData } from '@/lib/dataContext';
 import { useAuth } from '@/lib/authContext';
-import { Anggota } from '@/types/database';
-import { 
-  Users, 
-  Check, 
-  X, 
-  CreditCard, 
-  Search, 
-  ShieldAlert, 
-  ShieldCheck, 
-  Clock, 
-  CheckCircle2, 
-  Eye, 
-  Ban 
-} from 'lucide-react';
 
 export default function AdminVerifikasiPage() {
   const { anggota, adminUsers, verifikasiAnggota, banUser, unbanUser } = useData();
-  const { isAdmin } = useAuth();
 
-  const [activeTab, setActiveTab] = useState<'PENDING' | 'TERVERIFIKASI' | 'DITOLAK' | 'ALL'>('PENDING');
+  const [activeTab, setActiveTab] = useState<'pending' | 'verified' | 'rejected' | 'banned' | 'all'>('pending');
   const [search, setSearch] = useState('');
-  const [selectedKtmPreview, setSelectedKtmPreview] = useState<{ url: string; nama: string } | null>(null);
+  const [selectedKtm, setSelectedKtm] = useState<{ url: string; nama: string } | null>(null);
   const [rejectModal, setRejectModal] = useState<{ idAnggota: number; nama: string } | null>(null);
   const [rejectReason, setRejectReason] = useState('Foto KTM tidak terbaca atau buram');
   const [feedback, setFeedback] = useState<string | null>(null);
 
-  const filteredAnggota = anggota.filter((a) => {
-    const matchTab = activeTab === 'ALL' || a.status_verifikasi === activeTab;
-    const matchSearch =
-      search.trim() === '' ||
-      a.nama.toLowerCase().includes(search.toLowerCase()) ||
-      (a.email && a.email.toLowerCase().includes(search.toLowerCase())) ||
-      (a.telp && a.telp.includes(search));
-    return matchTab && matchSearch;
+  const pendingList = anggota.filter((a) => a.status_verifikasi === 'PENDING');
+  const verifiedList = anggota.filter((a) => {
+    const user = adminUsers.find((u) => u.id === a.id_admin);
+    return a.status_verifikasi === 'TERVERIFIKASI' && !user?.is_banned;
   });
+  const rejectedList = anggota.filter((a) => a.status_verifikasi === 'DITOLAK');
+  const bannedList = anggota.filter((a) => {
+    const user = adminUsers.find((u) => u.id === a.id_admin);
+    return user?.is_banned;
+  });
+
+  const getFilteredList = () => {
+    let base =
+      activeTab === 'pending'
+        ? pendingList
+        : activeTab === 'verified'
+        ? verifiedList
+        : activeTab === 'rejected'
+        ? rejectedList
+        : activeTab === 'banned'
+        ? bannedList
+        : anggota;
+
+    if (search.trim()) {
+      base = base.filter(
+        (a) =>
+          a.nama.toLowerCase().includes(search.toLowerCase()) ||
+          (a.email && a.email.toLowerCase().includes(search.toLowerCase())) ||
+          (a.telp && a.telp.includes(search))
+      );
+    }
+    return base;
+  };
 
   const handleApprove = async (idAnggota: number, nama: string) => {
     await verifikasiAnggota(idAnggota, 'TERVERIFIKASI');
@@ -48,211 +57,214 @@ export default function AdminVerifikasiPage() {
   const handleConfirmReject = async () => {
     if (rejectModal) {
       await verifikasiAnggota(rejectModal.idAnggota, 'DITOLAK', rejectReason);
-      setFeedback(`Verifikasi ${rejectModal.nama} ditolak.`);
+      setFeedback(`Verifikasi pendaftaran ${rejectModal.nama} ditolak.`);
       setRejectModal(null);
       setTimeout(() => setFeedback(null), 4000);
     }
   };
 
+  const currentList = getFilteredList();
+
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-zinc-900 dark:text-white">
-          Verifikasi KTM & Manajemen Anggota
-        </h1>
-        <p className="text-xs text-zinc-500 mt-1">
-          Validasi identitas Kartu Tanda Mahasiswa (KTM) dan pengelolaan hak akses anggota
-        </p>
+    <>
+      <div className="page-header">
+        <div className="page-header-info">
+          <h1>
+            <i className="bx bxs-user-detail" style={{ color: 'var(--primary)' }}></i> Kelola Pengguna &amp; Pendaftaran
+          </h1>
+          <p>Kelola verifikasi pendaftaran anggota baru, penolakan, pemblokiran (banned), hingga pembukaan akun anggota.</p>
+        </div>
+        <div className="page-actions" style={{ display: 'flex', gap: '8px' }}>
+          {pendingList.length > 0 && (
+            <span className="badge badge-warning" style={{ fontSize: '13px', padding: '8px 14px' }}>
+              <i className="bx bx-bell"></i> {pendingList.length} Menunggu ACC
+            </span>
+          )}
+          <span className="badge badge-success" style={{ fontSize: '13px', padding: '8px 14px' }}>
+            <i className="bx bx-check-shield"></i> {verifiedList.length} Aktif
+          </span>
+        </div>
       </div>
 
       {feedback && (
-        <div className="mb-6 p-4 rounded-2xl bg-emerald-50 text-emerald-800 border border-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-300 flex items-center gap-3 text-sm font-medium">
-          <CheckCircle2 className="w-5 h-5 shrink-0" />
-          <span>{feedback}</span>
+        <div className="alert alert-success">
+          <i className="bx bx-check-circle" style={{ fontSize: '20px' }}></i>
+          <div>{feedback}</div>
         </div>
       )}
 
-      {/* Tabs and Filter */}
-      <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-6">
-        <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
+      {/* Tabs Nav */}
+      <div style={{ display: 'flex', gap: '8px', marginBottom: '20px', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
           {[
-            { id: 'PENDING', label: 'Menunggu Verifikasi' },
-            { id: 'TERVERIFIKASI', label: 'Terverifikasi' },
-            { id: 'DITOLAK', label: 'Ditolak' },
-            { id: 'ALL', label: 'Semua Anggota' },
+            { id: 'pending', label: 'Menunggu ACC', icon: 'bx-time', count: pendingList.length, color: 'var(--warning)' },
+            { id: 'verified', label: 'Terverifikasi', icon: 'bx-check-circle', count: verifiedList.length, color: 'var(--success)' },
+            { id: 'rejected', label: 'Ditolak', icon: 'bx-x-circle', count: rejectedList.length, color: 'var(--danger)' },
+            { id: 'banned', label: 'Diblokir', icon: 'bx-block', count: bannedList.length, color: '#64748b' },
+            { id: 'all', label: 'Semua Anggota', icon: 'bx-user', count: anggota.length, color: 'var(--primary)' },
           ].map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as typeof activeTab)}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all ${
-                activeTab === tab.id
-                  ? 'bg-blue-600 text-white shadow-sm'
-                  : 'bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100'
-              }`}
+              className={`btn ${activeTab === tab.id ? 'btn-primary' : 'btn-secondary'}`}
+              style={{ borderRadius: 'var(--radius-md)', padding: '9px 16px', gap: '6px' }}
             >
-              {tab.label}
+              <i className={`bx ${tab.icon}`}></i>
+              <span>{tab.label}</span>
+              {tab.count > 0 && (
+                <span style={{
+                  background: activeTab === tab.id ? '#ffffff' : tab.color,
+                  color: activeTab === tab.id ? 'var(--primary)' : '#ffffff',
+                  fontWeight: 700,
+                  fontSize: '11px',
+                  padding: '1px 7px',
+                  borderRadius: 'var(--radius-full)'
+                }}>
+                  {tab.count}
+                </span>
+              )}
             </button>
           ))}
         </div>
 
-        <div className="relative w-full md:w-72">
-          <Search className="w-4 h-4 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2" />
+        <div style={{ minWidth: '260px' }}>
           <input
             type="text"
+            className="form-control"
+            placeholder="Cari nama, email, telp..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Cari nama anggota atau email..."
-            className="w-full pl-9 pr-4 py-1.5 text-xs bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl focus:outline-none focus:border-blue-500 text-zinc-900 dark:text-white"
+            style={{ padding: '8px 14px' }}
           />
         </div>
       </div>
 
-      {/* Table */}
-      <div className="bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-zinc-800 overflow-hidden shadow-sm">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead className="bg-zinc-50 dark:bg-zinc-950/50 text-zinc-500 font-semibold border-b border-zinc-100 dark:border-zinc-800">
+      <div className="card">
+        <div className="table-responsive">
+          <table className="table-modern">
+            <thead>
               <tr>
-                <th className="p-4">Identitas Mahasiswa</th>
-                <th className="p-4">Kontak & Domisili</th>
-                <th className="p-4">Foto KTM</th>
-                <th className="p-4">Status Akun</th>
-                <th className="p-4 text-right">Aksi Validasi</th>
+                <th style={{ width: '60px' }}>No</th>
+                <th>Identitas Anggota</th>
+                <th>Kontak &amp; Alamat</th>
+                <th style={{ width: '130px' }}>Scan KTM</th>
+                <th style={{ width: '130px' }}>Tgl Daftar</th>
+                <th style={{ width: '140px' }}>Status Akun</th>
+                <th style={{ width: '180px', textAlign: 'right' }}>Aksi Petugas</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
-              {filteredAnggota.length === 0 ? (
+            <tbody>
+              {currentList.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="p-8 text-center text-zinc-400">
+                  <td colSpan={7} style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
+                    <i className="bx bx-user-x" style={{ fontSize: '36px', display: 'block', marginBottom: '8px', color: 'var(--text-light)' }}></i>
                     Tidak ada anggota pada tab ini.
                   </td>
                 </tr>
               ) : (
-                filteredAnggota.map((a) => {
-                  const userAccount = adminUsers.find((u) => u.id === a.id_admin);
+                currentList.map((row, idx) => {
+                  const userAccount = adminUsers.find((u) => u.id === row.id_admin);
                   const isBanned = userAccount?.is_banned;
 
                   return (
-                    <tr key={a.id_anggota} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/40">
-                      <td className="p-4">
-                        <span className="font-bold text-sm text-zinc-900 dark:text-white block">
-                          {a.nama}
-                        </span>
-                        <span className="text-[11px] text-zinc-400 block">
-                          Jenis Kelamin: {a.sex === 'L' ? 'Laki-laki' : 'Perempuan'}
-                        </span>
-                        <span className="text-[10px] text-zinc-400">
-                          Terdaftar: {a.tgl_entry}
-                        </span>
-                      </td>
+                    <tr key={row.id_anggota}>
+                      <td>{idx + 1}</td>
 
-                      <td className="p-4">
-                        <span className="font-semibold text-zinc-800 dark:text-zinc-200 block">
-                          {a.email || '-'}
-                        </span>
-                        <span className="text-zinc-500 text-[11px] block">
-                          WA: {a.telp || '-'}
-                        </span>
-                        <span className="text-zinc-400 text-[10px]">
-                          {a.alamat || '-'}
-                        </span>
-                      </td>
-
-                      <td className="p-4">
-                        {a.ktm_foto ? (
-                          <button
-                            onClick={() => setSelectedKtmPreview({ url: a.ktm_foto!, nama: a.nama })}
-                            className="flex items-center gap-2 p-1.5 rounded-xl border border-zinc-200 dark:border-zinc-700 hover:border-blue-500 bg-zinc-50 dark:bg-zinc-800 group"
-                          >
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img
-                              src={a.ktm_foto}
-                              alt="KTM"
-                              className="w-10 h-7 object-cover rounded shadow"
-                            />
-                            <div className="text-left">
-                              <span className="text-[11px] font-semibold text-blue-600 group-hover:underline flex items-center gap-1">
-                                <Eye className="w-3 h-3" />
-                                Lihat KTM
-                              </span>
-                            </div>
-                          </button>
-                        ) : (
-                          <span className="text-zinc-400 italic text-[11px]">Tidak ada KTM</span>
-                        )}
-                      </td>
-
-                      <td className="p-4">
-                        <div className="space-y-1">
-                          {a.status_verifikasi === 'TERVERIFIKASI' && (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/70 dark:text-emerald-300">
-                              <CheckCircle2 className="w-3 h-3" />
-                              Terverifikasi
+                      <td>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={row.foto || '/profile-default.svg'}
+                            alt=""
+                            style={{ width: '38px', height: '38px', borderRadius: 'var(--radius-full)', objectFit: 'cover', border: '1px solid var(--card-border)' }}
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = '/profile-default.svg';
+                            }}
+                          />
+                          <div>
+                            <strong style={{ color: '#0f172a', fontSize: '13.5px', display: 'block' }}>
+                              {row.nama}
+                            </strong>
+                            <span style={{ fontSize: '11.5px', color: 'var(--text-muted)' }}>
+                              @{userAccount?.username || 'user'} &bull; {row.sex === 'L' ? 'Laki-laki' : 'Perempuan'}
                             </span>
-                          )}
-                          {a.status_verifikasi === 'PENDING' && (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-950/70 dark:text-amber-300">
-                              <Clock className="w-3 h-3" />
-                              Menunggu
-                            </span>
-                          )}
-                          {a.status_verifikasi === 'DITOLAK' && (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800 dark:bg-rose-950/70 dark:text-rose-300">
-                              <X className="w-3 h-3" />
-                              Ditolak: {a.catatan_verifikasi || 'KTM Kurang Jelas'}
-                            </span>
-                          )}
-
-                          {isBanned && (
-                            <span className="block text-[10px] font-bold text-rose-600 uppercase">
-                              [BANNED]
-                            </span>
-                          )}
+                          </div>
                         </div>
                       </td>
 
-                      <td className="p-4 text-right">
-                        <div className="flex items-center justify-end gap-1.5">
-                          {a.status_verifikasi === 'PENDING' && (
+                      <td>
+                        <div style={{ fontSize: '12.5px' }}>{row.email || '-'}</div>
+                        <div style={{ fontSize: '11.5px', color: 'var(--text-muted)' }}>WA: {row.telp || '-'}</div>
+                      </td>
+
+                      <td>
+                        {row.ktm_foto ? (
+                          <button
+                            onClick={() => setSelectedKtm({ url: row.ktm_foto!, nama: row.nama })}
+                            className="btn btn-secondary btn-sm"
+                            style={{ gap: '4px', padding: '4px 8px', fontSize: '11.5px' }}
+                          >
+                            <i className="bx bx-image"></i> Lihat KTM
+                          </button>
+                        ) : (
+                          <span style={{ color: 'var(--text-muted)', fontSize: '12px', fontStyle: 'italic' }}>Tanpa KTM</span>
+                        )}
+                      </td>
+
+                      <td>{row.tgl_entry}</td>
+
+                      <td>
+                        {row.status_verifikasi === 'TERVERIFIKASI' && (
+                          <span className="badge badge-success"><i className="bx bx-check"></i> Terverifikasi</span>
+                        )}
+                        {row.status_verifikasi === 'PENDING' && (
+                          <span className="badge badge-warning"><i className="bx bx-time"></i> Menunggu</span>
+                        )}
+                        {row.status_verifikasi === 'DITOLAK' && (
+                          <span className="badge badge-danger"><i className="bx bx-x"></i> Ditolak</span>
+                        )}
+                        {isBanned && (
+                          <span className="badge badge-danger" style={{ display: 'block', marginTop: '4px' }}>BANNED</span>
+                        )}
+                      </td>
+
+                      <td style={{ textAlign: 'right' }}>
+                        <div style={{ display: 'inline-flex', gap: '6px' }}>
+                          {row.status_verifikasi === 'PENDING' && (
                             <>
                               <button
-                                onClick={() => handleApprove(a.id_anggota, a.nama)}
-                                className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold flex items-center gap-1 shadow-sm"
+                                onClick={() => handleApprove(row.id_anggota, row.nama)}
+                                className="btn btn-success btn-sm"
+                                title="ACC Verifikasi"
                               >
-                                <Check className="w-3.5 h-3.5" />
-                                <span>Verifikasi</span>
+                                <i className="bx bx-check"></i> ACC
                               </button>
                               <button
-                                onClick={() => setRejectModal({ idAnggota: a.id_anggota, nama: a.nama })}
-                                className="p-1.5 text-zinc-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg"
-                                title="Tolak Berkas"
+                                onClick={() => setRejectModal({ idAnggota: row.id_anggota, nama: row.nama })}
+                                className="btn btn-danger btn-sm"
+                                title="Tolak Pendaftaran"
                               >
-                                <X className="w-4 h-4" />
+                                <i className="bx bx-x"></i> Tolak
                               </button>
                             </>
                           )}
 
-                          {/* Ban / Unban Toggle */}
                           {userAccount && (
                             <button
                               onClick={() => {
                                 if (isBanned) {
                                   unbanUser(userAccount.id);
                                 } else {
-                                  if (confirm(`Bekukan akun anggota ${a.nama}?`)) {
+                                  if (confirm(`Bekukan akun anggota ${row.nama}?`)) {
                                     banUser(userAccount.id, 'Pelanggaran peraturan perpustakaan');
                                   }
                                 }
                               }}
-                              className={`p-1.5 rounded-lg text-xs font-medium transition-colors ${
-                                isBanned
-                                  ? 'text-emerald-600 hover:bg-emerald-50'
-                                  : 'text-zinc-400 hover:text-rose-600 hover:bg-rose-50'
-                              }`}
+                              className={`btn btn-sm ${isBanned ? 'btn-secondary' : 'btn-danger'}`}
+                              style={{ padding: '4px 8px' }}
                               title={isBanned ? 'Buka Blokir (Unban)' : 'Blokir Akun (Ban)'}
                             >
-                              <Ban className="w-4 h-4" />
+                              <i className={`bx ${isBanned ? 'bx-lock-open' : 'bx-block'}`}></i>
                             </button>
                           )}
                         </div>
@@ -266,71 +278,85 @@ export default function AdminVerifikasiPage() {
         </div>
       </div>
 
-      {/* KTM Inspection Modal */}
-      {selectedKtmPreview && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-          <div className="bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-zinc-800 p-6 max-w-xl w-full shadow-2xl">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-bold text-sm text-zinc-900 dark:text-white">
-                Scan KTM: {selectedKtmPreview.nama}
+      {/* Modal Lihat KTM */}
+      {selectedKtm && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(15, 23, 42, 0.7)',
+          backdropFilter: 'blur(4px)',
+          zIndex: 50,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '20px'
+        }}>
+          <div className="card" style={{ maxWidth: '540px', width: '100%', padding: '24px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <h3 style={{ fontSize: '16px', fontWeight: 700, margin: 0 }}>
+                Scan KTM: {selectedKtm.nama}
               </h3>
-              <button
-                onClick={() => setSelectedKtmPreview(null)}
-                className="p-1 text-zinc-400 hover:text-zinc-600 rounded-lg"
-              >
-                <X className="w-5 h-5" />
+              <button onClick={() => setSelectedKtm(null)} className="btn btn-secondary btn-sm" style={{ padding: '2px 8px' }}>
+                <i className="bx bx-x" style={{ fontSize: '18px' }}></i>
               </button>
             </div>
-            <div className="bg-zinc-100 dark:bg-zinc-950 p-2 rounded-2xl flex items-center justify-center">
+            <div style={{ background: '#f8fafc', borderRadius: 'var(--radius-md)', padding: '8px', textAlign: 'center' }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={selectedKtmPreview.url}
-                alt="KTM Preview"
-                className="max-h-[65vh] object-contain rounded-xl shadow"
+                src={selectedKtm.url}
+                alt="KTM"
+                style={{ maxHeight: '60vh', maxWidth: '100%', objectFit: 'contain', borderRadius: '8px' }}
               />
             </div>
           </div>
         </div>
       )}
 
-      {/* Reject Reason Modal */}
+      {/* Modal Tolak */}
       {rejectModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-zinc-800 p-6 md:p-8 max-w-md w-full shadow-2xl">
-            <h3 className="font-bold text-base text-zinc-900 dark:text-white mb-1">
-              Tolak Verifikasi KTM
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(15, 23, 42, 0.6)',
+          backdropFilter: 'blur(4px)',
+          zIndex: 50,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '20px'
+        }}>
+          <div className="card" style={{ maxWidth: '440px', width: '100%', padding: '24px' }}>
+            <h3 style={{ fontSize: '16px', fontWeight: 700, margin: '0 0 12px' }}>
+              Tolak Pendaftaran Anggota
             </h3>
-            <p className="text-xs text-zinc-500 mb-4">
-              Anggota: <span className="font-semibold">{rejectModal.nama}</span>
+            <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '16px' }}>
+              Anggota: <strong>{rejectModal.nama}</strong>
             </p>
-            <div className="mb-4">
-              <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
-                Catatan Alasan Penolakan
-              </label>
+            <div className="form-group">
+              <label className="form-label">Alasan Penolakan</label>
               <textarea
-                rows={3}
+                className="form-control"
                 value={rejectReason}
                 onChange={(e) => setRejectReason(e.target.value)}
-                className="w-full p-3 text-xs bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-zinc-900 dark:text-white focus:outline-none focus:border-blue-500"
               />
             </div>
-            <div className="flex items-center justify-end gap-2">
-              <button
-                onClick={() => setRejectModal(null)}
-                className="px-4 py-2 text-xs font-semibold text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 rounded-xl"
-              >
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '20px' }}>
+              <button onClick={() => setRejectModal(null)} className="btn btn-secondary">
                 Batal
               </button>
-              <button
-                onClick={handleConfirmReject}
-                className="px-5 py-2 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded-xl"
-              >
-                Tolak Berkas
+              <button onClick={handleConfirmReject} className="btn btn-danger">
+                Tolak Pendaftaran
               </button>
             </div>
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }
