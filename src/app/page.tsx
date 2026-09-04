@@ -1,16 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
 import Link from 'next/link';
+import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 import { useData } from '@/lib/dataContext';
 import { useAuth } from '@/lib/authContext';
-import BarcodeModal from '@/components/BarcodeModal';
-import { Buku } from '@/types/database';
 
 export default function HomePage() {
   const { buku, anggota, peminjaman, config } = useData();
-  const { currentUser, currentAnggota, isAdmin, isMember, switchRoleQuick } = useAuth();
-  const [selectedBarcodeBuku, setSelectedBarcodeBuku] = useState<Buku | null>(null);
+  const { currentUser, currentAnggota, isAdmin, isMember } = useAuth();
 
   const totalBuku = buku.length;
   const totalStok = buku.reduce((acc, b) => acc + (b.qty_stok || 0), 0);
@@ -19,42 +16,6 @@ export default function HomePage() {
 
   return (
     <>
-      {/* Role Notice & Demo Bar */}
-      <div style={{
-        background: '#ffffff',
-        border: '1px solid var(--card-border)',
-        borderRadius: 'var(--radius-md)',
-        padding: '12px 18px',
-        marginBottom: '24px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        flexWrap: 'wrap',
-        gap: '10px'
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px' }}>
-          <i className="bx bx-shield-quarter" style={{ fontSize: '20px', color: 'var(--primary)' }}></i>
-          <span>Mode Pengujian:</span>
-          <strong>{isAdmin ? 'Administrator' : isMember ? 'Anggota Mahasiswa' : 'Tamu / Belum Login'}</strong>
-        </div>
-        <div style={{ display: 'flex', gap: '8px' }}>
-          <button
-            type="button"
-            onClick={() => switchRoleQuick('ADM')}
-            className={`btn btn-sm ${isAdmin ? 'btn-primary' : 'btn-secondary'}`}
-          >
-            <i className="bx bx-shield-quarter"></i> Masuk Mode Admin
-          </button>
-          <button
-            type="button"
-            onClick={() => switchRoleQuick('MBR')}
-            className={`btn btn-sm ${isMember ? 'btn-primary' : 'btn-secondary'}`}
-          >
-            <i className="bx bx-user"></i> Masuk Mode Mahasiswa
-          </button>
-        </div>
-      </div>
-
       {isAdmin ? (
         /* ================= ADMIN VIEW ================= */
         <>
@@ -181,23 +142,44 @@ export default function HomePage() {
       ) : (
         /* ================= GUEST / PUBLIC VIEW ================= */
         <>
-          <div className="hero-banner">
-            <div className="hero-title">Perpustakaan Digital Politeknik Negeri Lampung</div>
-            <div className="hero-desc">
-              Pusat sumber informasi, literasi sains, dan teknologi terapan Politeknik Negeri Lampung (Polinela). Akses koleksi buku akademik, karya ilmiah, dan literatur berkualitas kapan saja.
+          <section className="landing-hero" aria-labelledby="landing-title">
+            <div className="landing-hero-copy">
+              <span className="landing-kicker"><i className="bx bx-sparkles"></i> Ruang belajar Polinela</span>
+              <h1 id="landing-title">Temukan referensi yang membuatmu terus maju.</h1>
+              <p>
+                Satu pintu untuk menjelajahi koleksi akademik, menemukan bacaan yang relevan,
+                dan mengajukan peminjaman tanpa antre di meja layanan.
+              </p>
+              <div className="landing-actions">
+                <Link href="/katalog" className="btn btn-primary">
+                  <i className="bx bx-library"></i> Jelajahi koleksi
+                </Link>
+                <Link href="/register" className="landing-text-link">
+                  Buat akun anggota <i className="bx bx-arrow-up-right"></i>
+                </Link>
+              </div>
+              <div className="landing-proof">
+                <span><i className="bx bx-check-circle"></i> Koleksi terkurasi</span>
+                <span><i className="bx bx-check-circle"></i> Akses kapan saja</span>
+              </div>
             </div>
-            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-              <Link href="/katalog" className="btn btn-primary" style={{ background: '#ffffff', color: 'var(--primary)' }}>
-                <i className="bx bx-library"></i> Jelajahi Koleksi Buku
-              </Link>
-              <Link href="/login" className="btn btn-secondary" style={{ background: 'rgba(255,255,255,0.15)', color: '#fff', borderColor: 'rgba(255,255,255,0.2)' }}>
-                <i className="bx bx-log-in"></i> Masuk Anggota
-              </Link>
-              <Link href="/register" className="btn btn-secondary" style={{ background: 'rgba(255,255,255,0.15)', color: '#fff', borderColor: 'rgba(255,255,255,0.2)' }}>
-                <i className="bx bx-user-plus"></i> Daftar Anggota Baru
-              </Link>
+            <div className="landing-hero-panel" aria-label="Ringkasan layanan">
+              <div className="landing-animation" aria-hidden="true">
+                <DotLottieReact
+                  src="/Bird%20pair%20love%20and%20flying%20sky.lottie"
+                  autoplay
+                  loop
+                />
+              </div>
+              <div className="landing-panel-label">Hari ini di perpustakaan</div>
+              <div className="landing-panel-number">{totalStok}</div>
+              <div className="landing-panel-caption">eksemplar siap dipinjam</div>
+              <div className="landing-panel-rule"></div>
+              <div className="landing-panel-row"><span>Koleksi aktif</span><strong>{totalBuku} judul</strong></div>
+              <div className="landing-panel-row"><span>Dukungan</span><strong>Online &amp; praktis</strong></div>
+              <i className="bx bx-book-reader landing-panel-icon" aria-hidden="true"></i>
             </div>
-          </div>
+          </section>
 
           <div className="stats-grid">
             <div className="stat-card stat-indigo">
@@ -216,14 +198,6 @@ export default function HomePage() {
               <div className="stat-icon"><i className="bx bx-check-shield"></i></div>
             </div>
 
-            <div className="stat-card stat-sky">
-              <div className="stat-data">
-                <h3>Layanan Barcode</h3>
-                <div className="number">Aktif</div>
-              </div>
-              <div className="stat-icon"><i className="bx bx-barcode"></i></div>
-            </div>
-
             <div className="stat-card stat-amber">
               <div className="stat-data">
                 <h3>Denda per Hari</h3>
@@ -234,11 +208,47 @@ export default function HomePage() {
               <div className="stat-icon"><i className="bx bx-coin-stack"></i></div>
             </div>
           </div>
+
+          <section className="landing-value-section" aria-labelledby="value-title">
+            <div className="landing-section-heading">
+              <span className="landing-kicker">Dibuat untuk ritme kuliahmu</span>
+              <h2 id="value-title">Lebih sedikit mencari. Lebih banyak belajar.</h2>
+              <p>Semua yang kamu butuhkan untuk menemukan dan meminjam buku, disusun dalam alur yang sederhana.</p>
+            </div>
+            <div className="landing-value-grid">
+              <article className="landing-value-card landing-value-featured">
+                <span className="landing-value-index">01</span>
+                <i className="bx bx-search-alt-2"></i>
+                <h3>Cari dengan cepat</h3>
+                <p>Gunakan judul, ISBN, pengarang, atau kategori untuk langsung menemukan referensi yang tepat.</p>
+              </article>
+              <article className="landing-value-card">
+                <span className="landing-value-index">02</span>
+                <i className="bx bx-bookmark-heart"></i>
+                <h3>Pilih dengan yakin</h3>
+                <p>Lihat detail, stok, dan informasi penerbit sebelum mengajukan peminjaman.</p>
+              </article>
+              <article className="landing-value-card">
+                <span className="landing-value-index">03</span>
+                <i className="bx bx-time-five"></i>
+                <h3>Pantau dari mana saja</h3>
+                <p>Ajukan peminjaman dan cek status transaksi melalui akun anggota kamu.</p>
+              </article>
+            </div>
+          </section>
+
+          <section className="landing-cta" aria-labelledby="cta-title">
+            <div>
+              <span className="landing-kicker">Siap mulai?</span>
+              <h2 id="cta-title">Bawa perpustakaan lebih dekat ke aktivitasmu.</h2>
+            </div>
+            <Link href="/katalog" className="btn btn-primary">Mulai jelajah <i className="bx bx-right-arrow-alt"></i></Link>
+          </section>
         </>
       )}
 
       {/* Koleksi Buku Terbaru */}
-      <div style={{ marginTop: '36px' }}>
+      <section className="landing-featured-books">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
           <div>
             <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-main)', margin: 0 }}>
@@ -263,7 +273,10 @@ export default function HomePage() {
                   <img
                     src={item.foto}
                     alt={item.judul}
-                    style={{ maxHeight: '100%', objectFit: 'contain' }}
+                    className="book-cover-image"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = '/default-book-cover.svg';
+                    }}
                   />
                 ) : (
                   <i className="bx bx-book-open"></i>
@@ -289,13 +302,6 @@ export default function HomePage() {
                 </div>
 
                 <div style={{ display: 'flex', gap: '8px', marginTop: 'auto', paddingTop: '12px', borderTop: '1px solid var(--card-border)' }}>
-                  <button
-                    onClick={() => setSelectedBarcodeBuku(item)}
-                    className="btn btn-secondary btn-sm"
-                    title="Cetak Barcode Label"
-                  >
-                    <i className="bx bx-barcode"></i>
-                  </button>
                   <Link
                     href={`/buku/${encodeURIComponent(item.isbn)}`}
                     className="btn btn-primary btn-sm"
@@ -308,14 +314,8 @@ export default function HomePage() {
             </div>
           ))}
         </div>
-      </div>
+      </section>
 
-      {selectedBarcodeBuku && (
-        <BarcodeModal
-          buku={selectedBarcodeBuku}
-          onClose={() => setSelectedBarcodeBuku(null)}
-        />
-      )}
     </>
   );
 }

@@ -13,11 +13,11 @@ function KatalogContent() {
   const initialQuery = searchParams.get('q') || '';
   
   const { buku, katalog, pinjamBuku } = useData();
-  const { currentUser, currentAnggota, isAdmin } = useAuth();
+  const { currentAnggota, isAdmin } = useAuth();
   
   const [search, setSearch] = useState(initialQuery);
   const [selectedKatalog, setSelectedKatalog] = useState<string>('ALL');
-  const [viewMode, setViewMode] = useState<'grid' | 'table'>('table');
+  const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
   const [selectedBarcodeBuku, setSelectedBarcodeBuku] = useState<Buku | null>(null);
   const [feedback, setFeedback] = useState<{ msg: string; isError: boolean } | null>(null);
 
@@ -38,25 +38,18 @@ function KatalogContent() {
   }, [buku, search, selectedKatalog]);
 
   const handlePinjam = async (item: Buku) => {
-    if (!currentUser) {
-      setFeedback({
-        msg: 'Silakan masuk (login) terlebih dahulu untuk mengajukan peminjaman buku!',
-        isError: true,
-      });
+    const targetAnggotaId = currentAnggota?.id_anggota;
+    
+    if (!targetAnggotaId) {
+      setFeedback({ msg: 'Sesi anggota belum siap. Silakan klik pinjam lagi.', isError: true });
       return;
     }
 
-    if (!currentAnggota) {
-      setFeedback({
-        msg: 'Akun Anda belum terdaftar sebagai Anggota Perpustakaan!',
-        isError: true,
-      });
-      return;
-    }
-
-    const res = await pinjamBuku(currentAnggota.id_anggota, item.isbn, 1);
+    const res = await pinjamBuku(targetAnggotaId, item.isbn, 1);
     setFeedback({
-      msg: res.message,
+      msg: res.success 
+        ? `Sukses! Peminjaman buku "${item.judul}" berhasil diajukan & masuk ke antrean ACC Sirkulasi.` 
+        : res.message,
       isError: !res.success,
     });
 
@@ -66,18 +59,26 @@ function KatalogContent() {
   };
 
   return (
-    <>
-      <div className="page-header">
+    <div className="catalog-page">
+      <div className="catalog-hero page-header">
         <div className="page-header-info">
-          <h1>Koleksi &amp; Katalog Buku</h1>
-          <p>Total {filteredBuku.length} judul buku terdaftar di perpustakaan.</p>
+          <span className="catalog-eyebrow"><i className="bx bx-library"></i> Perpustakaan digital</span>
+          <h1>Temukan bacaan favoritmu</h1>
+          <p>Jelajahi koleksi buku Polinela dan ajukan peminjaman dengan mudah.</p>
         </div>
-        <div className="page-actions" style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+        <div className="catalog-summary">
+          <strong>{filteredBuku.length}</strong>
+          <span>judul tersedia</span>
+        </div>
+      </div>
+
+      <div className="catalog-toolbar">
+        <label className="catalog-filter">
+          <span>Kategori</span>
           <select
             value={selectedKatalog}
             onChange={(e) => setSelectedKatalog(e.target.value)}
             className="form-control"
-            style={{ width: 'auto', padding: '8px 14px', fontSize: '13px' }}
           >
             <option value="ALL">Semua Kategori</option>
             {katalog.map((kat) => (
@@ -86,14 +87,17 @@ function KatalogContent() {
               </option>
             ))}
           </select>
+        </label>
 
-          <button
-            onClick={() => setViewMode(viewMode === 'table' ? 'grid' : 'table')}
-            className="btn btn-secondary btn-sm"
-            title="Ganti Tampilan Tabel/Grid"
-          >
-            <i className={`bx ${viewMode === 'table' ? 'bx-grid-alt' : 'bx-list-ul'}`}></i>
-          </button>
+        <div className="catalog-toolbar-actions">
+          <div className="catalog-view-toggle" role="group" aria-label="Mode tampilan katalog">
+            <button type="button" onClick={() => setViewMode('grid')} className={viewMode === 'grid' ? 'active' : ''} aria-label="Tampilan kartu">
+              <i className="bx bx-grid-alt"></i>
+            </button>
+            <button type="button" onClick={() => setViewMode('table')} className={viewMode === 'table' ? 'active' : ''} aria-label="Tampilan tabel">
+              <i className="bx bx-list-ul"></i>
+            </button>
+          </div>
 
           {isAdmin && (
             <Link href="/admin/buku" className="btn btn-primary btn-sm">
@@ -104,29 +108,50 @@ function KatalogContent() {
       </div>
 
       {feedback && (
-        <div className={`alert ${feedback.isError ? 'alert-danger' : 'alert-success'}`}>
-          <i className={`bx ${feedback.isError ? 'bx-error-circle' : 'bx-check-circle'}`} style={{ fontSize: '20px' }}></i>
-          <div>{feedback.msg}</div>
+        <div
+          className={`alert ${feedback.isError ? 'alert-danger' : 'alert-success'}`}
+          style={{
+            position: 'fixed',
+            bottom: '24px',
+            right: '24px',
+            zIndex: 99999,
+            maxWidth: '440px',
+            boxShadow: 'var(--shadow-lg)',
+            border: '2px solid rgba(0,0,0,0.1)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px'
+          }}
+        >
+          <i className={`bx ${feedback.isError ? 'bx-error-circle' : 'bx-check-circle'}`} style={{ fontSize: '24px', flexShrink: 0 }}></i>
+          <div style={{ flex: 1, fontSize: '13px', fontWeight: 600 }}>{feedback.msg}</div>
+          <button
+            type="button"
+            onClick={() => setFeedback(null)}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', padding: '2px', display: 'flex' }}
+          >
+            <i className="bx bx-x" style={{ fontSize: '20px' }}></i>
+          </button>
         </div>
       )}
 
       {/* Search Input */}
-      <div className="card" style={{ marginBottom: '20px', padding: '12px 18px' }}>
-        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-          <i className="bx bx-search" style={{ fontSize: '20px', color: 'var(--text-muted)' }}></i>
+      <div className="catalog-search card">
+        <div>
+          <i className="bx bx-search" aria-hidden="true"></i>
           <input
             type="text"
             className="form-control"
-            placeholder="Cari judul buku, nomor ISBN, atau nama pengarang..."
+            placeholder="Cari judul, ISBN, pengarang, atau penerbit..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            style={{ border: 'none', background: 'transparent', padding: '4px 0' }}
           />
         </div>
+        {search && <button type="button" onClick={() => setSearch('')} aria-label="Hapus pencarian"><i className="bx bx-x"></i></button>}
       </div>
 
       {viewMode === 'table' ? (
-        <div className="card">
+        <div className="catalog-table card">
           <div className="table-responsive">
             <table className="table-modern">
               <thead>
@@ -202,16 +227,18 @@ function KatalogContent() {
 
                       <td style={{ textAlign: 'center' }}>
                         <div style={{ display: 'inline-flex', gap: '6px' }}>
+                          {isAdmin && (
+                            <button
+                              onClick={() => setSelectedBarcodeBuku(b)}
+                              className="btn btn-secondary btn-sm"
+                              title="Cetak Barcode"
+                              style={{ padding: '4px 8px' }}
+                            >
+                              <i className="bx bx-barcode"></i>
+                            </button>
+                          )}
                           <button
-                            onClick={() => setSelectedBarcodeBuku(b)}
-                            className="btn btn-secondary btn-sm"
-                            title="Cetak Barcode"
-                            style={{ padding: '4px 8px' }}
-                          >
-                            <i className="bx bx-barcode"></i>
-                          </button>
-                          <button
-                            onClick={() => handlePinjam(b)}
+                            onClick={() => void handlePinjam(b)}
                             disabled={b.qty_stok <= 0}
                             className={`btn btn-sm ${b.qty_stok > 0 ? 'btn-primary' : 'btn-secondary'}`}
                             style={{ padding: '4px 10px' }}
@@ -228,7 +255,14 @@ function KatalogContent() {
           </div>
         </div>
       ) : (
-        <div className="book-grid">
+        <div className="catalog-book-grid book-grid">
+          {filteredBuku.length === 0 && (
+            <div className="catalog-empty card">
+              <i className="bx bx-search-alt-2"></i>
+              <strong>Buku tidak ditemukan</strong>
+              <span>Coba gunakan kata kunci atau kategori yang berbeda.</span>
+            </div>
+          )}
           {filteredBuku.map((item) => (
             <div key={item.isbn} className="book-card">
               <div className="book-cover">
@@ -263,15 +297,17 @@ function KatalogContent() {
                 </div>
 
                 <div style={{ display: 'flex', gap: '8px', marginTop: 'auto', paddingTop: '12px', borderTop: '1px solid var(--card-border)' }}>
+                  {isAdmin && (
+                    <button
+                      onClick={() => setSelectedBarcodeBuku(item)}
+                      className="btn btn-secondary btn-sm"
+                      title="Cetak Barcode Label"
+                    >
+                      <i className="bx bx-barcode"></i>
+                    </button>
+                  )}
                   <button
-                    onClick={() => setSelectedBarcodeBuku(item)}
-                    className="btn btn-secondary btn-sm"
-                    title="Cetak Barcode Label"
-                  >
-                    <i className="bx bx-barcode"></i>
-                  </button>
-                  <button
-                    onClick={() => handlePinjam(item)}
+                    onClick={() => void handlePinjam(item)}
                     disabled={item.qty_stok <= 0}
                     className={`btn btn-sm ${item.qty_stok > 0 ? 'btn-primary' : 'btn-secondary'}`}
                     style={{ flex: 1, justifyContent: 'center' }}
@@ -291,7 +327,7 @@ function KatalogContent() {
           onClose={() => setSelectedBarcodeBuku(null)}
         />
       )}
-    </>
+    </div>
   );
 }
 

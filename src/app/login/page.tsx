@@ -22,7 +22,7 @@ export default function LoginPage() {
 
     const res = login(username);
     if (res.success) {
-      if (username.toLowerCase() === 'admin') {
+      if (res.role === 'ADM') {
         router.push('/admin/dashboard');
       } else {
         router.push('/member/dashboard');
@@ -38,8 +38,8 @@ export default function LoginPage() {
   };
 
   return (
-    <div style={{ maxWidth: '440px', margin: '40px auto' }}>
-      <div className="card" style={{ padding: '32px', boxShadow: 'var(--shadow-lg)' }}>
+    <div className="login-page">
+      <div className="card login-card" style={{ padding: '32px', boxShadow: 'var(--shadow-lg)' }}>
         <div style={{ textAlign: 'center', marginBottom: '28px' }}>
           <div style={{ width: '56px', height: '56px', background: 'var(--primary-light)', color: 'var(--primary)', borderRadius: 'var(--radius-md)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '28px', margin: '0 auto 16px' }}>
             <i className="bx bxs-user-lock"></i>
@@ -59,7 +59,7 @@ export default function LoginPage() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} className="login-form">
           <div className="form-group">
             <label className="form-label">Username</label>
             <div style={{ position: 'relative' }}>
@@ -105,12 +105,12 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <div style={{ marginTop: '24px', paddingTop: '20px', borderTop: '1px solid var(--card-border)', textAlign: 'center', fontSize: '13px', color: 'var(--text-muted)' }}>
+        <div className="login-register-link" style={{ marginTop: '24px', paddingTop: '20px', borderTop: '1px solid var(--card-border)', textAlign: 'center', fontSize: '13px', color: 'var(--text-muted)' }}>
           Belum memiliki akun anggota? <Link href="/register" style={{ fontWeight: 600 }}>Daftar di sini</Link>
         </div>
 
         {/* Demo Account Quick Fill Helper */}
-        <div style={{ marginTop: '20px', padding: '12px 14px', background: '#f8fafc', borderRadius: 'var(--radius-sm)', border: '1px dashed var(--card-border)', fontSize: '12px' }}>
+        <div className="login-demo-box" style={{ marginTop: '20px', padding: '12px 14px', background: '#f8fafc', borderRadius: 'var(--radius-sm)', border: '1px dashed var(--card-border)', fontSize: '12px' }}>
           <div style={{ fontWeight: 600, color: '#475569', marginBottom: '4px' }}>Akun Demo Default:</div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '6px' }}>
             <span>Admin: <code>admin</code></span>

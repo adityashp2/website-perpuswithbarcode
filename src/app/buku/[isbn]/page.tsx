@@ -36,27 +36,32 @@ export default function BookDetailPage() {
   }
 
   const handleBorrow = async () => {
-    if (!currentUser) {
-      setFeedback({
-        msg: 'Silakan masuk (login) terlebih dahulu untuk meminjam buku ini!',
-        isError: true,
-      });
+    const targetAnggotaId = currentAnggota?.id_anggota;
+    
+    if (!targetAnggotaId) {
+      setFeedback({ msg: 'Sesi anggota belum siap. Silakan klik pinjam lagi.', isError: true });
       return;
     }
 
-    if (!currentAnggota) {
-      setFeedback({
-        msg: 'Akun Anda bukan akun anggota perpustakaan yang aktif.',
-        isError: true,
-      });
-      return;
-    }
-
-    const res = await pinjamBuku(currentAnggota.id_anggota, targetBook.isbn, 1);
+    const res = await pinjamBuku(targetAnggotaId, targetBook.isbn, 1);
     setFeedback({
-      msg: res.message,
+      msg: res.success 
+        ? `Sukses! Peminjaman buku "${targetBook.judul}" berhasil diajukan & masuk ke antrean ACC Sirkulasi.`
+        : res.message,
       isError: !res.success,
     });
+
+    setTimeout(() => {
+      setFeedback(null);
+    }, 5000);
+  };
+
+  const handleBack = () => {
+    if (typeof window !== 'undefined' && window.history.length > 1) {
+      router.back();
+    } else {
+      router.push('/katalog');
+    }
   };
 
   return (
@@ -67,16 +72,37 @@ export default function BookDetailPage() {
           <p>Informasi bibliografi dan ketersediaan stok buku fisik di perpustakaan.</p>
         </div>
         <div className="page-actions">
-          <button onClick={() => router.back()} className="btn btn-secondary">
+          <button type="button" onClick={handleBack} className="btn btn-secondary">
             <i className="bx bx-arrow-back"></i> Kembali
           </button>
         </div>
       </div>
 
       {feedback && (
-        <div className={`alert ${feedback.isError ? 'alert-danger' : 'alert-success'}`}>
-          <i className={`bx ${feedback.isError ? 'bx-error-circle' : 'bx-check-circle'}`} style={{ fontSize: '20px' }}></i>
-          <div>{feedback.msg}</div>
+        <div
+          className={`alert ${feedback.isError ? 'alert-danger' : 'alert-success'}`}
+          style={{
+            position: 'fixed',
+            bottom: '24px',
+            right: '24px',
+            zIndex: 99999,
+            maxWidth: '440px',
+            boxShadow: 'var(--shadow-lg)',
+            border: '2px solid rgba(0,0,0,0.1)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px'
+          }}
+        >
+          <i className={`bx ${feedback.isError ? 'bx-error-circle' : 'bx-check-circle'}`} style={{ fontSize: '24px', flexShrink: 0 }}></i>
+          <div style={{ flex: 1, fontSize: '13px', fontWeight: 600 }}>{feedback.msg}</div>
+          <button
+            type="button"
+            onClick={() => setFeedback(null)}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', padding: '2px', display: 'flex' }}
+          >
+            <i className="bx bx-x" style={{ fontSize: '20px' }}></i>
+          </button>
         </div>
       )}
 
@@ -96,9 +122,11 @@ export default function BookDetailPage() {
               />
             </div>
             <div style={{ marginTop: '16px' }}>
-              <button onClick={() => setShowBarcodeModal(true)} className="btn btn-secondary btn-sm" style={{ width: '100%', maxWidth: '210px', margin: 'auto', justifyContent: 'center' }}>
-                <i className="bx bx-barcode"></i> Cetak Label Barcode
-              </button>
+              {currentUser?.type === 'ADM' && (
+                <button onClick={() => setShowBarcodeModal(true)} className="btn btn-secondary btn-sm" style={{ width: '100%', maxWidth: '210px', margin: 'auto', justifyContent: 'center' }}>
+                  <i className="bx bx-barcode"></i> Cetak Label Barcode
+                </button>
+              )}
             </div>
           </div>
 
@@ -145,7 +173,7 @@ export default function BookDetailPage() {
 
             <div style={{ marginTop: '20px' }}>
               <button
-                onClick={handleBorrow}
+                onClick={() => void handleBorrow()}
                 disabled={targetBook.qty_stok <= 0}
                 className="btn btn-primary"
                 style={{ padding: '12px 24px', fontSize: '14px' }}

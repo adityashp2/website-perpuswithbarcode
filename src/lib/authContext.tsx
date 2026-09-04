@@ -9,9 +9,9 @@ interface AuthContextType {
   currentAnggota: Anggota | null;
   isAdmin: boolean;
   isMember: boolean;
-  login: (username: string) => { success: boolean; message: string };
+  isAuthReady: boolean;
+  login: (username: string) => { success: boolean; message: string; role?: AdminUser['type'] };
   logout: () => void;
-  switchRoleQuick: (type: 'ADM' | 'MBR') => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -20,25 +20,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const { adminUsers, anggota } = useData();
   const [currentUser, setCurrentUser] = useState<AdminUser | null>(null);
   const [currentAnggota, setCurrentAnggota] = useState<Anggota | null>(null);
+  const [isAuthReady, setIsAuthReady] = useState(false);
 
   useEffect(() => {
     // Check saved session in localStorage
-    try {
-      const savedUser = localStorage.getItem('perpus_session_user');
-      if (savedUser) {
-        const parsed = JSON.parse(savedUser) as AdminUser;
-        const found = adminUsers.find((u) => u.id === parsed.id) || parsed;
-        if (!found.is_banned) {
-          setCurrentUser(found);
-          const matchedAnggota = anggota.find((a) => a.id_admin === found.id);
-          setCurrentAnggota(matchedAnggota || null);
-        } else {
-          localStorage.removeItem('perpus_session_user');
+    const restoreSession = async () => {
+      try {
+        const savedUser = localStorage.getItem('perpus_session_user');
+        if (savedUser) {
+          const parsed = JSON.parse(savedUser) as AdminUser;
+          const found = adminUsers.find((u) => u.id === parsed.id);
+          if (found && !found.is_banned) {
+            setCurrentUser(found);
+            setCurrentAnggota(anggota.find((a) => a.id_admin === found.id) || null);
+          } else {
+            localStorage.removeItem('perpus_session_user');
+          }
         }
+      } catch (e) {
+        console.error('Gagal memulihkan sesi:', e);
+      } finally {
+        setIsAuthReady(true);
       }
-    } catch (e) {
-      console.error(e);
-    }
+    };
+    void restoreSession();
   }, [adminUsers, anggota]);
 
   const login = (username: string) => {
@@ -62,23 +67,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setCurrentAnggota(matchedAnggota || null);
     localStorage.setItem('perpus_session_user', JSON.stringify(user));
 
-    return { success: true, message: `Selamat datang kembali, ${user.username}!` };
+    return { success: true, message: `Selamat datang kembali, ${user.username}!`, role: user.type };
   };
 
   const logout = () => {
     setCurrentUser(null);
     setCurrentAnggota(null);
     localStorage.removeItem('perpus_session_user');
-  };
-
-  const switchRoleQuick = (type: 'ADM' | 'MBR') => {
-    const target = adminUsers.find((u) => u.type === type && !u.is_banned);
-    if (target) {
-      setCurrentUser(target);
-      const matchedAnggota = anggota.find((a) => a.id_admin === target.id);
-      setCurrentAnggota(matchedAnggota || null);
-      localStorage.setItem('perpus_session_user', JSON.stringify(target));
-    }
+    window.location.href = '/login';
   };
 
   return (
@@ -88,9 +84,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         currentAnggota,
         isAdmin: currentUser?.type === 'ADM',
         isMember: currentUser?.type === 'MBR',
+        isAuthReady,
         login,
         logout,
-        switchRoleQuick,
       }}
     >
       {children}

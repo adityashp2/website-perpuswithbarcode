@@ -7,7 +7,7 @@ export default function Footer() {
         <strong>Perpustakaan Politeknik Negeri Lampung</strong> &copy; {new Date().getFullYear()} &bull; Sistem Informasi Perpustakaan Terpadu
       </div>
       <div>
-        Dikembangkan dengan antarmuka modern &amp; responsif
+        Akses koleksi, kelola sirkulasi, dan pantau layanan dalam satu tempat.
       </div>
     </footer>
   );

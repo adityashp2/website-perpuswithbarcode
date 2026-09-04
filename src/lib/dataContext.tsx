@@ -77,6 +77,12 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [config, setConfig] = useState<LibraryConfig>(initialConfig);
   const [isLoading, setIsLoading] = useState(true);
 
+  const throwIfSupabaseError = (error: { message: string } | null, action: string) => {
+    if (error) {
+      throw new Error(`${action} gagal: ${error.message}`);
+    }
+  };
+
   // Load Initial Data (from Supabase or LocalStorage/Mock)
   useEffect(() => {
     async function loadData() {
@@ -102,6 +108,15 @@ export function DataProvider({ children }: { children: ReactNode }) {
             supabase.from('anggota').select('*'),
             supabase.from('admin').select('*'),
           ]);
+
+          throwIfSupabaseError(bukuRes.error, 'Memuat buku');
+          throwIfSupabaseError(katRes.error, 'Memuat katalog');
+          throwIfSupabaseError(penRes.error, 'Memuat penerbit');
+          throwIfSupabaseError(pengRes.error, 'Memuat pengarang');
+          throwIfSupabaseError(cfgRes.error, 'Memuat konfigurasi');
+          throwIfSupabaseError(pinjamRes.error, 'Memuat peminjaman');
+          throwIfSupabaseError(angRes.error, 'Memuat anggota');
+          throwIfSupabaseError(admRes.error, 'Memuat admin');
 
           if (bukuRes.data && bukuRes.data.length > 0) setBuku(bukuRes.data as Buku[]);
           else setBuku(initialBuku);
@@ -184,7 +199,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     saveLocal('perpus_buku', updated);
 
     if (isSupabaseConfigured && supabase) {
-      await supabase.from('buku').insert({
+      const { error } = await supabase.from('buku').insert({
         isbn: newBook.isbn,
         judul: newBook.judul,
         tahun: newBook.tahun,
@@ -195,6 +210,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         foto: newBook.foto,
         maks_pinjam_per_anggota: newBook.maks_pinjam_per_anggota,
       });
+      throwIfSupabaseError(error, 'Menambahkan buku');
     }
   };
 
@@ -204,7 +220,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
     saveLocal('perpus_buku', updated);
 
     if (isSupabaseConfigured && supabase) {
-      await supabase.from('buku').update(updatedFields).eq('isbn', isbn);
+      const { error } = await supabase.from('buku').update(updatedFields).eq('isbn', isbn);
+      throwIfSupabaseError(error, 'Mengubah buku');
     }
   };
 
@@ -214,12 +231,22 @@ export function DataProvider({ children }: { children: ReactNode }) {
     saveLocal('perpus_buku', updated);
 
     if (isSupabaseConfigured && supabase) {
-      await supabase.from('buku').delete().eq('isbn', isbn);
+      const { error } = await supabase.from('buku').delete().eq('isbn', isbn);
+      throwIfSupabaseError(error, 'Menghapus buku');
     }
   };
 
   const updateStok = async (isbn: string, newQty: number) => {
+    if (!Number.isFinite(newQty) || newQty < 0) {
+      throw new Error('Jumlah stok tidak valid');
+    }
     await updateBuku(isbn, { qty_stok: newQty });
+  };
+
+  const adjustStock = async (isbn: string, delta: number) => {
+    const target = buku.find((item) => item.isbn === isbn);
+    if (!target) return;
+    await updateStok(isbn, target.qty_stok + delta);
   };
 
   const addKatalog = async (item: Katalog) => {
@@ -227,7 +254,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
     setKatalog(updated);
     saveLocal('perpus_katalog', updated);
     if (isSupabaseConfigured && supabase) {
-      await supabase.from('katalog').insert(item);
+      const { error } = await supabase.from('katalog').insert(item);
+      throwIfSupabaseError(error, 'Menambahkan katalog');
     }
   };
 
@@ -236,7 +264,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
     setKatalog(updated);
     saveLocal('perpus_katalog', updated);
     if (isSupabaseConfigured && supabase) {
-      await supabase.from('katalog').delete().eq('id_katalog', id);
+      const { error } = await supabase.from('katalog').delete().eq('id_katalog', id);
+      throwIfSupabaseError(error, 'Menghapus katalog');
     }
   };
 
@@ -245,7 +274,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
     setPenerbit(updated);
     saveLocal('perpus_penerbit', updated);
     if (isSupabaseConfigured && supabase) {
-      await supabase.from('penerbit').insert(item);
+      const { error } = await supabase.from('penerbit').insert(item);
+      throwIfSupabaseError(error, 'Menambahkan penerbit');
     }
   };
 
@@ -254,7 +284,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
     setPenerbit(updated);
     saveLocal('perpus_penerbit', updated);
     if (isSupabaseConfigured && supabase) {
-      await supabase.from('penerbit').delete().eq('id_penerbit', id);
+      const { error } = await supabase.from('penerbit').delete().eq('id_penerbit', id);
+      throwIfSupabaseError(error, 'Menghapus penerbit');
     }
   };
 
@@ -263,7 +294,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
     setPengarang(updated);
     saveLocal('perpus_pengarang', updated);
     if (isSupabaseConfigured && supabase) {
-      await supabase.from('pengarang').insert(item);
+      const { error } = await supabase.from('pengarang').insert(item);
+      throwIfSupabaseError(error, 'Menambahkan pengarang');
     }
   };
 
@@ -272,7 +304,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
     setPengarang(updated);
     saveLocal('perpus_pengarang', updated);
     if (isSupabaseConfigured && supabase) {
-      await supabase.from('pengarang').delete().eq('id_pengarang', id);
+      const { error } = await supabase.from('pengarang').delete().eq('id_pengarang', id);
+      throwIfSupabaseError(error, 'Menghapus pengarang');
     }
   };
 
@@ -280,7 +313,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
     setConfig(newCfg);
     saveLocal('perpus_config', newCfg);
     if (isSupabaseConfigured && supabase) {
-      await supabase.from('config').upsert(newCfg);
+      const { error } = await supabase.from('config').upsert(newCfg);
+      throwIfSupabaseError(error, 'Menyimpan konfigurasi');
     }
   };
 
@@ -304,8 +338,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
     returnDateObj.setDate(returnDateObj.getDate() + (config.maxLamaPinjam || 3));
     const tglKembali = returnDateObj.toISOString().split('T')[0];
 
+    const transactionId = Date.now();
     const newPinjam: Peminjaman = {
-      id_pinjam: Date.now(),
+      id_pinjam: transactionId,
       id_anggota: idAnggota,
       tgl_pinjam: tglPinjam,
       tgl_kembali: tglKembali,
@@ -313,7 +348,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       anggota: targetAnggota,
       details: [
         {
-          id_pinjam: Date.now(),
+          id_pinjam: transactionId,
           isbn,
           qty,
           buku: targetBook,
@@ -329,7 +364,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     await updateStok(isbn, targetBook.qty_stok - qty);
 
     if (isSupabaseConfigured && supabase) {
-      const { data: pData } = await supabase
+      const { data: pData, error: pinjamError } = await supabase
         .from('peminjaman')
         .insert({
           id_anggota: idAnggota,
@@ -340,12 +375,14 @@ export function DataProvider({ children }: { children: ReactNode }) {
         .select()
         .single();
 
+      throwIfSupabaseError(pinjamError, 'Menyimpan peminjaman');
       if (pData) {
-        await supabase.from('detail_peminjaman').insert({
+        const { error: detailError } = await supabase.from('detail_peminjaman').insert({
           id_pinjam: pData.id_pinjam,
           isbn,
           qty,
         });
+        throwIfSupabaseError(detailError, 'Menyimpan detail peminjaman');
       }
     }
 
@@ -360,7 +397,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
     saveLocal('perpus_peminjaman', updated);
 
     if (isSupabaseConfigured && supabase) {
-      await supabase.from('peminjaman').update({ status: 'DIPINJAM' }).eq('id_pinjam', idPinjam);
+      const { error } = await supabase.from('peminjaman').update({ status: 'DIPINJAM' }).eq('id_pinjam', idPinjam);
+      throwIfSupabaseError(error, 'Menyetujui peminjaman');
     }
   };
 
@@ -369,7 +407,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     if (target && target.details) {
       for (const d of target.details) {
         const b = buku.find((item) => item.isbn === d.isbn);
-        if (b) await updateStok(d.isbn, b.qty_stok + d.qty);
+        if (b) await adjustStock(d.isbn, d.qty);
       }
     }
 
@@ -380,7 +418,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
     saveLocal('perpus_peminjaman', updated);
 
     if (isSupabaseConfigured && supabase) {
-      await supabase.from('peminjaman').update({ status: 'DITOLAK' }).eq('id_pinjam', idPinjam);
+      const { error } = await supabase.from('peminjaman').update({ status: 'DITOLAK' }).eq('id_pinjam', idPinjam);
+      throwIfSupabaseError(error, 'Menolak peminjaman');
     }
   };
 
@@ -392,7 +431,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
     saveLocal('perpus_peminjaman', updated);
 
     if (isSupabaseConfigured && supabase) {
-      await supabase.from('peminjaman').update({ status: 'MENUNGGU_KEMBALI' }).eq('id_pinjam', idPinjam);
+      const { error } = await supabase.from('peminjaman').update({ status: 'MENUNGGU_KEMBALI' }).eq('id_pinjam', idPinjam);
+      throwIfSupabaseError(error, 'Mengajukan pengembalian');
     }
   };
 
@@ -401,7 +441,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     if (target && target.details) {
       for (const d of target.details) {
         const b = buku.find((item) => item.isbn === d.isbn);
-        if (b) await updateStok(d.isbn, b.qty_stok + d.qty);
+        if (b) await adjustStock(d.isbn, d.qty);
       }
     }
 
@@ -412,12 +452,14 @@ export function DataProvider({ children }: { children: ReactNode }) {
     saveLocal('perpus_peminjaman', updated);
 
     if (isSupabaseConfigured && supabase) {
-      await supabase.from('peminjaman').update({ status: 'DIKEMBALIKAN' }).eq('id_pinjam', idPinjam);
-      await supabase.from('pengembalian').insert({
+      const { error: pinjamError } = await supabase.from('peminjaman').update({ status: 'DIKEMBALIKAN' }).eq('id_pinjam', idPinjam);
+      throwIfSupabaseError(pinjamError, 'Menyetujui pengembalian');
+      const { error: returnError } = await supabase.from('pengembalian').insert({
         id_pinjam: idPinjam,
         tgl_kembali: new Date().toISOString().split('T')[0],
         denda,
       });
+      throwIfSupabaseError(returnError, 'Menyimpan pengembalian');
     }
   };
 
@@ -435,13 +477,14 @@ export function DataProvider({ children }: { children: ReactNode }) {
     saveLocal('perpus_anggota', updated);
 
     if (isSupabaseConfigured && supabase) {
-      await supabase
+      const { error } = await supabase
         .from('anggota')
         .update({
           status_verifikasi: status,
           catatan_verifikasi: catatan || null,
         })
         .eq('id_anggota', idAnggota);
+      throwIfSupabaseError(error, 'Memverifikasi anggota');
     }
   };
 
@@ -453,7 +496,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     saveLocal('perpus_admin', updated);
 
     if (isSupabaseConfigured && supabase) {
-      await supabase
+      const { error } = await supabase
         .from('admin')
         .update({
           is_banned: true,
@@ -461,6 +504,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
           banned_at: new Date().toISOString(),
         })
         .eq('id', idAdmin);
+      throwIfSupabaseError(error, 'Memblokir user');
     }
   };
 
@@ -472,7 +516,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     saveLocal('perpus_admin', updated);
 
     if (isSupabaseConfigured && supabase) {
-      await supabase
+      const { error } = await supabase
         .from('admin')
         .update({
           is_banned: false,
@@ -480,6 +524,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
           banned_at: null,
         })
         .eq('id', idAdmin);
+      throwIfSupabaseError(error, 'Membuka blokir user');
     }
   };
 
@@ -529,13 +574,14 @@ export function DataProvider({ children }: { children: ReactNode }) {
     saveLocal('perpus_anggota', nextAnggota);
 
     if (isSupabaseConfigured && supabase) {
-      await supabase.from('admin').insert({
+      const { error: adminError } = await supabase.from('admin').insert({
         id: newId,
         username: data.username,
         password: 'password123',
         type: 'MBR',
       });
-      await supabase.from('anggota').insert({
+      throwIfSupabaseError(adminError, 'Mendaftarkan akun');
+      const { error: memberError } = await supabase.from('anggota').insert({
         id_admin: newId,
         nama: data.nama,
         sex: data.sex,
@@ -547,6 +593,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         ktm_foto: newAnggota.ktm_foto,
         status_verifikasi: 'PENDING',
       });
+      throwIfSupabaseError(memberError, 'Mendaftarkan data anggota');
     }
 
     return { success: true, message: 'Pendaftaran berhasil! Akun Anda sedang menunggu verifikasi KTM oleh Admin.' };

@@ -64,18 +64,14 @@ export default function Topbar({ onToggleSidebar }: TopbarProps) {
           <i className="bx bx-menu"></i>
         </button>
 
-        <form onSubmit={handleSearchSubmit} className="topbar-search">
-          <i className="bx bx-search search-icon"></i>
-          <input
-            type="text"
-            placeholder="Cari judul buku atau pengarang..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </form>
       </div>
 
       <div className="topbar-right">
+        {!currentUser && (
+          <nav className="public-nav-links" aria-label="Navigasi utama">
+            <Link href="/" className="active">Beranda</Link>
+          </nav>
+        )}
         {/* Live Real-Time Clock */}
         <div
           className="date-pill"
@@ -111,10 +107,20 @@ export default function Topbar({ onToggleSidebar }: TopbarProps) {
           </div>
         </div>
 
+        <form onSubmit={handleSearchSubmit} className="topbar-search">
+          <i className="bx bx-search search-icon"></i>
+          <input
+            type="text"
+            placeholder="Cari buku atau pengarang..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </form>
+
         {currentUser ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Link
-              href="/member/dashboard"
+              href={currentUser.type === 'ADM' ? '/admin/dashboard' : '/member/dashboard'}
               className="btn btn-secondary btn-sm"
               style={{ borderRadius: 'var(--radius-full)', gap: '6px' }}
             >

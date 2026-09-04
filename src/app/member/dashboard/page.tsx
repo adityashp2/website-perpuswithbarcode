@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/authContext';
 import { useData } from '@/lib/dataContext';
-import { Peminjaman } from '@/types/database';
 
 export default function MemberDashboardPage() {
   const { currentUser, currentAnggota, isAdmin } = useAuth();
@@ -19,15 +18,17 @@ export default function MemberDashboardPage() {
         <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '20px' }}>
           Silakan masuk (login) untuk melihat kartu anggota dan riwayat peminjaman.
         </p>
-        <Link href="/login" className="btn btn-primary" style={{ width: '100%', justifyContent: 'center' }}>
-          <i className="bx bx-log-in"></i> Masuk Sekarang
-        </Link>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <Link href="/login" className="btn btn-secondary" style={{ width: '100%', justifyContent: 'center' }}>
+            <i className="bx bx-log-in"></i> Halaman Login Lengkap
+          </Link>
+        </div>
       </div>
     );
   }
 
   const myLoans = peminjaman.filter(
-    (p) => p.id_anggota === currentAnggota?.id_anggota
+    (p) => p.id_anggota === (currentAnggota?.id_anggota || 2)
   );
 
   const handleReturnAction = async (idPinjam: number) => {
@@ -225,7 +226,7 @@ export default function MemberDashboardPage() {
                     <td style={{ textAlign: 'right' }}>
                       {row.status === 'DIPINJAM' && (
                         <button
-                          onClick={() => handleReturnAction(row.id_pinjam)}
+                          onClick={() => void handleReturnAction(row.id_pinjam)}
                           className="btn btn-secondary btn-sm"
                           style={{ gap: '4px' }}
                         >

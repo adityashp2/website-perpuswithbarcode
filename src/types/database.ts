@@ -73,7 +73,7 @@ export interface Peminjaman {
   id_anggota: number;
   tgl_pinjam: string;
   tgl_kembali: string;
-  status: 'MENUNGGU_ACC' | 'DIPINJAM' | 'MENUNGGU_KEMBALI' | 'DIKEMBALIKAN' | 'DITOLAK';
+  status: 'MENUNGGU_ACC' | 'DIPINJAM' | 'MENUNGGU_KEMBALI' | 'DIKEMBALIKAN' | 'DITOLAK' | 'PENDING' | 'KEMBALI' | 'SELESAI';
   anggota?: Anggota;
   details?: DetailPeminjaman[];
   denda_estimasi?: number;

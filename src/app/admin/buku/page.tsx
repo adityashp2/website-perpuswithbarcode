@@ -10,6 +10,7 @@ export default function AdminBukuPage() {
 
   const [search, setSearch] = useState('');
   const [selectedBarcodeBuku, setSelectedBarcodeBuku] = useState<Buku | null>(null);
+  const [feedback, setFeedback] = useState<string | null>(null);
   
   // Stock edit state
   const [editingStokBuku, setEditingStokBuku] = useState<{ isbn: string; current: number } | null>(null);
@@ -54,6 +55,8 @@ export default function AdminBukuPage() {
 
     await addBuku(newBook);
     setShowAddModal(false);
+    setFeedback(`Buku "${newBook.judul}" berhasil ditambahkan ke database!`);
+    setTimeout(() => setFeedback(null), 4000);
     setFormData({
       isbn: '',
       judul: '',
@@ -70,12 +73,14 @@ export default function AdminBukuPage() {
   const handleUpdateStokSubmit = async () => {
     if (editingStokBuku) {
       await updateStok(editingStokBuku.isbn, newStokVal);
+      setFeedback(`Stok buku ${editingStokBuku.isbn} berhasil diubah menjadi ${newStokVal} eksemplar.`);
+      setTimeout(() => setFeedback(null), 4000);
       setEditingStokBuku(null);
     }
   };
 
   return (
-    <>
+    <div className="inventory-page">
       <div className="page-header">
         <div className="page-header-info">
           <h1>Manajemen Data Buku</h1>
@@ -98,6 +103,13 @@ export default function AdminBukuPage() {
           </button>
         </div>
       </div>
+
+      {feedback && (
+        <div className="alert alert-success" style={{ marginBottom: '20px' }}>
+          <i className="bx bx-check-circle" style={{ fontSize: '20px' }}></i>
+          <div>{feedback}</div>
+        </div>
+      )}
 
       {/* Search Input Bar */}
       <div className="card" style={{ marginBottom: '20px', padding: '14px 20px' }}>
@@ -224,9 +236,11 @@ export default function AdminBukuPage() {
                           <i className="bx bx-barcode"></i>
                         </button>
                         <button
-                          onClick={() => {
+                          onClick={async () => {
                             if (confirm(`Yakin ingin menghapus buku "${b.judul}"?`)) {
-                              deleteBuku(b.isbn);
+                              await deleteBuku(b.isbn);
+                              setFeedback(`Buku "${b.judul}" berhasil dihapus.`);
+                              setTimeout(() => setFeedback(null), 4000);
                             }
                           }}
                           className="btn btn-danger btn-sm"
@@ -252,9 +266,9 @@ export default function AdminBukuPage() {
           left: 0,
           right: 0,
           bottom: 0,
-          background: 'rgba(15, 23, 42, 0.6)',
+          background: 'rgba(15, 23, 42, 0.75)',
           backdropFilter: 'blur(4px)',
-          zIndex: 50,
+          zIndex: 99999,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -297,9 +311,9 @@ export default function AdminBukuPage() {
           left: 0,
           right: 0,
           bottom: 0,
-          background: 'rgba(15, 23, 42, 0.6)',
+          background: 'rgba(15, 23, 42, 0.75)',
           backdropFilter: 'blur(4px)',
-          zIndex: 50,
+          zIndex: 99999,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -435,6 +449,6 @@ export default function AdminBukuPage() {
           onClose={() => setSelectedBarcodeBuku(null)}
         />
       )}
-    </>
+    </div>
   );
 }

@@ -24,14 +24,14 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     (a) => a.status_verifikasi === 'PENDING'
   ).length;
 
-  const isActive = (path: string) => {
-    if (path === '/' && pathname === '/') return true;
-    if (path !== '/' && pathname.startsWith(path)) return true;
-    return false;
-  };
+  const isActive = (path: string) => pathname === path || (path !== '/' && pathname.startsWith(`${path}/`));
 
   return (
     <>
+      <div
+        className="sidebar-edge-trigger"
+        aria-label="Tampilkan sidebar"
+      />
       {/* Mobile Backdrop Overlay */}
       <div 
         className={`sidebar-overlay ${isOpen ? 'active' : ''}`}
@@ -60,7 +60,6 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
           {isAdmin ? (
             <>
               {/* Admin Navigation */}
-              <div className="nav-section-title">Menu Utama</div>
               <ul className="nav-list">
                 <li className={`nav-item ${isActive('/admin/dashboard') ? 'active' : ''}`}>
                   <Link href="/admin/dashboard" onClick={onClose}>
@@ -68,49 +67,17 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                     <span>Dashboard</span>
                   </Link>
                 </li>
-                <li className={`nav-item ${isActive('/member/dashboard') ? 'active' : ''}`}>
-                  <Link href="/member/dashboard" onClick={onClose}>
-                    <i className="bx bx-user-circle"></i>
-                    <span>Profil Saya</span>
-                  </Link>
-                </li>
               </ul>
 
-              <div className="nav-section-title">Master Data Perpustakaan</div>
               <ul className="nav-list">
-                <li className={`nav-item ${isActive('/admin/buku') ? 'active' : ''}`}>
-                  <Link href="/admin/buku" onClick={onClose}>
-                    <i className="bx bx-book-bookmark"></i>
-                    <span>Data Buku</span>
-                  </Link>
-                </li>
-                <li className={`nav-item ${isActive('/admin/buku?tab=stok') ? 'active' : ''}`}>
-                  <Link href="/admin/buku" onClick={onClose}>
+                <li className="nav-item">
+                  <Link href="/admin/buku?view=stock" onClick={onClose}>
                     <i className="bx bx-layer"></i>
                     <span>Kelola Stok</span>
                   </Link>
                 </li>
-                <li className={`nav-item ${isActive('/admin/master') ? 'active' : ''}`}>
-                  <Link href="/admin/master" onClick={onClose}>
-                    <i className="bx bx-category"></i>
-                    <span>Katalog Kategori</span>
-                  </Link>
-                </li>
-                <li className={`nav-item ${isActive('/admin/master') ? 'active' : ''}`}>
-                  <Link href="/admin/master" onClick={onClose}>
-                    <i className="bx bx-pencil"></i>
-                    <span>Pengarang</span>
-                  </Link>
-                </li>
-                <li className={`nav-item ${isActive('/admin/master') ? 'active' : ''}`}>
-                  <Link href="/admin/master" onClick={onClose}>
-                    <i className="bx bx-buildings"></i>
-                    <span>Penerbit</span>
-                  </Link>
-                </li>
               </ul>
 
-              <div className="nav-section-title">Sirkulasi & ACC</div>
               <ul className="nav-list">
                 <li className={`nav-item ${isActive('/admin/sirkulasi') ? 'active' : ''}`}>
                   <Link href="/admin/sirkulasi" onClick={onClose}>
@@ -135,7 +102,6 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                 </li>
               </ul>
 
-              <div className="nav-section-title">Manajemen Pengguna</div>
               <ul className="nav-list">
                 <li className={`nav-item ${isActive('/admin/verifikasi') ? 'active' : ''}`}>
                   <Link href="/admin/verifikasi" onClick={onClose}>
@@ -160,32 +126,21 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                 </li>
               </ul>
 
-              <div className="nav-section-title">Pengaturan & Sesi</div>
               <ul className="nav-list">
                 <li className={`nav-item ${isActive('/admin/master') ? 'active' : ''}`}>
-                  <Link href="/admin/master" onClick={onClose}>
+                  <Link href="/admin/master?section=config" onClick={onClose}>
                     <i className="bx bx-slider-alt"></i>
                     <span>Konfigurasi Denda</span>
                   </Link>
                 </li>
                 <li className="nav-item">
-                  <button 
+                  <button className="sidebar-logout-button"
                     onClick={() => {
                       if (confirm('Apakah Anda yakin ingin keluar (logout)?')) {
                         logout();
                         onClose();
                       }
                     }} 
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      width: '100%',
-                      textAlign: 'left',
-                      display: 'flex',
-                      alignItems: 'center',
-                      color: '#f87171',
-                      cursor: 'pointer'
-                    }}
                   >
                     <i className="bx bx-log-out"></i>
                     <span>Keluar (Logout)</span>
@@ -196,7 +151,6 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
           ) : isMember ? (
             <>
               {/* Member Navigation */}
-              <div className="nav-section-title">Menu Anggota</div>
               <ul className="nav-list">
                 <li className={`nav-item ${isActive('/') ? 'active' : ''}`}>
                   <Link href="/" onClick={onClose}>
@@ -218,7 +172,6 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                 </li>
               </ul>
 
-              <div className="nav-section-title">Layanan Sirkulasi</div>
               <ul className="nav-list">
                 <li className={`nav-item ${isActive('/katalog') ? 'active' : ''}`}>
                   <Link href="/katalog" onClick={onClose}>
@@ -234,26 +187,15 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                 </li>
               </ul>
 
-              <div className="nav-section-title">Akun</div>
               <ul className="nav-list">
                 <li className="nav-item">
-                  <button 
+                  <button className="sidebar-logout-button"
                     onClick={() => {
                       if (confirm('Apakah Anda yakin ingin keluar (logout)?')) {
                         logout();
                         onClose();
                       }
                     }} 
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      width: '100%',
-                      textAlign: 'left',
-                      display: 'flex',
-                      alignItems: 'center',
-                      color: '#f87171',
-                      cursor: 'pointer'
-                    }}
                   >
                     <i className="bx bx-log-out"></i>
                     <span>Keluar (Logout)</span>
@@ -264,7 +206,6 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
           ) : (
             <>
               {/* Public / Guest Navigation */}
-              <div className="nav-section-title">Eksplorasi</div>
               <ul className="nav-list">
                 <li className={`nav-item ${isActive('/') ? 'active' : ''}`}>
                   <Link href="/" onClick={onClose}>
@@ -272,15 +213,8 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                     <span>Beranda Utama</span>
                   </Link>
                 </li>
-                <li className={`nav-item ${isActive('/katalog') ? 'active' : ''}`}>
-                  <Link href="/katalog" onClick={onClose}>
-                    <i className="bx bx-book-open"></i>
-                    <span>Koleksi Buku</span>
-                  </Link>
-                </li>
               </ul>
 
-              <div className="nav-section-title">Portal Akses</div>
               <ul className="nav-list">
                 <li className={`nav-item ${isActive('/login') ? 'active' : ''}`}>
                   <Link href="/login" onClick={onClose}>

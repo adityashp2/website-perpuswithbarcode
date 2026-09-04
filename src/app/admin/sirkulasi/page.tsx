@@ -1,14 +1,19 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useData } from '@/lib/dataContext';
-import { useAuth } from '@/lib/authContext';
 import { Peminjaman } from '@/types/database';
+
+declare global {
+  interface Window {
+    BarcodeDetector?: new (options?: { formats?: string[] }) => {
+      detect: (source: HTMLVideoElement) => Promise<Array<{ rawValue?: string }>>;
+    };
+  }
+}
 
 export default function AdminSirkulasiPage() {
   const { peminjaman, config, accPinjam, tolakPinjam, accKembali } = useData();
-  const { isAdmin } = useAuth();
-
   const [activeTab, setActiveTab] = useState<'pending' | 'dipinjam' | 'kembali' | 'selesai'>('pending');
   const [scanIsbn, setScanIsbn] = useState('');
   const [scanResult, setScanResult] = useState<Peminjaman | null>(null);
@@ -19,6 +24,10 @@ export default function AdminSirkulasiPage() {
   const [selectedReturn, setSelectedReturn] = useState<Peminjaman | null>(null);
   const [dendaVal, setDendaVal] = useState<number>(0);
   const [lateDays, setLateDays] = useState<number>(0);
+  const [cameraOpen, setCameraOpen] = useState(false);
+  const [cameraError, setCameraError] = useState('');
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
 
   const dendaPerHari = config.dendaPerHari || 500;
 
@@ -36,26 +45,103 @@ export default function AdminSirkulasiPage() {
     return { days: 0, denda: 0 };
   };
 
-  const pendingList = peminjaman.filter((p) => p.status === 'MENUNGGU_ACC');
+  const pendingList = peminjaman.filter((p) => p.status === 'MENUNGGU_ACC' || p.status === 'PENDING');
   const dipinjamList = peminjaman.filter((p) => p.status === 'DIPINJAM');
-  const kembaliList = peminjaman.filter((p) => p.status === 'MENUNGGU_KEMBALI');
-  const selesaiList = peminjaman.filter((p) => p.status === 'DIKEMBALIKAN' || p.status === 'DITOLAK');
+  const kembaliList = peminjaman.filter((p) => p.status === 'MENUNGGU_KEMBALI' || p.status === 'KEMBALI');
+  const selesaiList = peminjaman.filter((p) => p.status === 'DIKEMBALIKAN' || p.status === 'SELESAI' || p.status === 'DITOLAK');
 
-  const handleScan = (e: React.FormEvent) => {
-    e.preventDefault();
+  const findTransaction = useCallback((value: string) => {
     setScanError('');
     setScanResult(null);
 
     const target = peminjaman.find(
       (p) =>
-        p.details?.some((d) => d.isbn.toLowerCase() === scanIsbn.trim().toLowerCase()) &&
-        (p.status === 'MENUNGGU_ACC' || p.status === 'DIPINJAM' || p.status === 'MENUNGGU_KEMBALI')
+        p.details?.some((d) => d.isbn.toLowerCase() === value.trim().toLowerCase()) &&
+        (p.status === 'MENUNGGU_ACC' || p.status === 'PENDING' || p.status === 'DIPINJAM' || p.status === 'MENUNGGU_KEMBALI' || p.status === 'KEMBALI')
     );
 
     if (target) {
       setScanResult(target);
     } else {
-      setScanError(`ISBN / Barcode "${scanIsbn}" tidak ditemukan pada sirkulasi aktif.`);
+      setScanError(`ISBN / Barcode "${value}" tidak ditemukan pada sirkulasi aktif.`);
+    }
+  }, [peminjaman]);
+
+  useEffect(() => {
+    if (!cameraOpen) return;
+    let cancelled = false;
+
+    const startCamera = async () => {
+      if (!navigator.mediaDevices?.getUserMedia) {
+        setCameraError('Kamera tidak tersedia. Buka melalui localhost/HTTPS atau gunakan scanner USB.');
+        return;
+      }
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+        if (cancelled) {
+          stream.getTracks().forEach((track) => track.stop());
+          return;
+        }
+        streamRef.current = stream;
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          await videoRef.current.play();
+        }
+        if (!window.BarcodeDetector) {
+          setCameraError('Preview kamera aktif, tetapi browser ini belum mendukung deteksi barcode otomatis. Gunakan Chrome/Edge terbaru atau ketik ISBN secara manual.');
+          return;
+        }
+        const detector = new window.BarcodeDetector({ formats: ['code_128', 'ean_13', 'ean_8', 'upc_a', 'upc_e'] });
+        const scan = async () => {
+          if (cancelled || !videoRef.current) return;
+          try {
+            const results = await detector.detect(videoRef.current);
+            if (results[0]?.rawValue) {
+              setScanIsbn(results[0].rawValue);
+              findTransaction(results[0].rawValue);
+              setCameraOpen(false);
+              return;
+            }
+          } catch {
+            setCameraError('Barcode belum terbaca. Arahkan kamera dengan lebih jelas.');
+          }
+          if (!cancelled) requestAnimationFrame(() => void scan());
+        };
+        void scan();
+      } catch (error) {
+        if (error instanceof DOMException && error.name === 'NotAllowedError') {
+          setCameraError('Izin kamera ditolak. Klik ikon gembok kamera di address bar, izinkan kamera, lalu coba lagi.');
+        } else if (error instanceof DOMException && error.name === 'NotFoundError') {
+          setCameraError('Kamera tidak ditemukan pada perangkat ini.');
+        } else {
+          setCameraError(error instanceof Error ? error.message : 'Kamera tidak dapat diakses.');
+        }
+      }
+    };
+    void startCamera();
+    return () => {
+      cancelled = true;
+      streamRef.current?.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+    };
+  }, [cameraOpen, findTransaction]);
+
+  const handleScan = (e: React.FormEvent) => {
+    e.preventDefault();
+    findTransaction(scanIsbn);
+  };
+
+  const handleAccPinjam = async (idPinjam: number) => {
+    await accPinjam(idPinjam);
+    setFeedback(`Peminjaman TRX-${idPinjam} berhasil disetujui (ACC).`);
+    setTimeout(() => setFeedback(null), 4000);
+  };
+
+  const handleTolakPinjam = async (idPinjam: number) => {
+    if (confirm('Apakah Anda yakin ingin menolak permohonan peminjaman ini?')) {
+      await tolakPinjam(idPinjam);
+      setFeedback(`Permohonan peminjaman TRX-${idPinjam} telah ditolak.`);
+      setTimeout(() => setFeedback(null), 4000);
     }
   };
 
@@ -133,6 +219,9 @@ export default function AdminSirkulasiPage() {
           <button type="submit" className="btn btn-primary">
             <i className="bx bx-search"></i> Cari Data
           </button>
+          <button type="button" className="btn btn-secondary" onClick={() => { setCameraError(''); setCameraOpen(true); }}>
+            <i className="bx bx-camera"></i> Scan Kamera
+          </button>
         </form>
 
         {scanError && (
@@ -152,18 +241,40 @@ export default function AdminSirkulasiPage() {
                 </p>
               </div>
               <div style={{ display: 'flex', gap: '8px' }}>
-                {scanResult.status === 'MENUNGGU_ACC' && (
-                  <button onClick={() => accPinjam(scanResult.id_pinjam)} className="btn btn-success btn-sm">
+                {(scanResult.status === 'MENUNGGU_ACC' || scanResult.status === 'PENDING') && (
+                  <button onClick={() => handleAccPinjam(scanResult.id_pinjam)} className="btn btn-success btn-sm">
                     <i className="bx bx-check"></i> ACC Pinjam
                   </button>
                 )}
-                {(scanResult.status === 'DIPINJAM' || scanResult.status === 'MENUNGGU_KEMBALI') && (
+                {(scanResult.status === 'DIPINJAM' || scanResult.status === 'MENUNGGU_KEMBALI' || scanResult.status === 'KEMBALI') && (
                   <button onClick={() => handleOpenKembaliModal(scanResult)} className="btn btn-info btn-sm">
                     <i className="bx bx-package"></i> ACC Kembali
                   </button>
                 )}
               </div>
             </div>
+          </div>
+        )}
+
+        {cameraOpen && (
+          <div className="card camera-scan-panel">
+            <div className="camera-scan-header">
+              <strong>Arahkan kamera ke barcode buku</strong>
+              <button type="button" className="btn btn-secondary btn-sm" onClick={() => setCameraOpen(false)}>Tutup</button>
+            </div>
+            <div className="camera-preview">
+              <video ref={videoRef} autoPlay muted playsInline />
+              <div className="camera-guide" aria-hidden="true">
+                <span className="camera-guide-frame"></span>
+                <span className="camera-corner corner-top-left"></span>
+                <span className="camera-corner corner-top-right"></span>
+                <span className="camera-corner corner-bottom-left"></span>
+                <span className="camera-corner corner-bottom-right"></span>
+                <span className="camera-scan-line"></span>
+                <span className="camera-guide-label">Posisikan barcode di dalam kotak</span>
+              </div>
+            </div>
+            {cameraError && <div className="alert alert-error camera-scan-error">{cameraError}</div>}
           </div>
         )}
       </div>
@@ -301,17 +412,17 @@ export default function AdminSirkulasiPage() {
 
                       <td style={{ textAlign: 'right' }}>
                         <div style={{ display: 'inline-flex', gap: '6px' }}>
-                          {row.status === 'MENUNGGU_ACC' && (
+                          {(row.status === 'MENUNGGU_ACC' || row.status === 'PENDING') && (
                             <>
                               <button
-                                onClick={() => accPinjam(row.id_pinjam)}
+                                onClick={() => handleAccPinjam(row.id_pinjam)}
                                 className="btn btn-success btn-sm"
                                 title="Setujui Peminjaman"
                               >
                                 <i className="bx bx-check"></i> ACC
                               </button>
                               <button
-                                onClick={() => tolakPinjam(row.id_pinjam)}
+                                onClick={() => handleTolakPinjam(row.id_pinjam)}
                                 className="btn btn-danger btn-sm"
                                 title="Tolak Peminjaman"
                               >
@@ -320,7 +431,7 @@ export default function AdminSirkulasiPage() {
                             </>
                           )}
 
-                          {(row.status === 'DIPINJAM' || row.status === 'MENUNGGU_KEMBALI') && (
+                          {(row.status === 'DIPINJAM' || row.status === 'MENUNGGU_KEMBALI' || row.status === 'KEMBALI') && (
                             <button
                               onClick={() => handleOpenKembaliModal(row)}
                               className="btn btn-info btn-sm"
@@ -348,9 +459,9 @@ export default function AdminSirkulasiPage() {
           left: 0,
           right: 0,
           bottom: 0,
-          background: 'rgba(15, 23, 42, 0.6)',
+          background: 'rgba(15, 23, 42, 0.75)',
           backdropFilter: 'blur(4px)',
-          zIndex: 50,
+          zIndex: 99999,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
