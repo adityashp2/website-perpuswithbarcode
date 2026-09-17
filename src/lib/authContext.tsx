@@ -31,8 +31,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (savedUser) {
           const parsed = JSON.parse(savedUser) as AdminUser;
           const found = adminUsers.find((u) => u.id === parsed.id);
-          if (found && !found.is_banned) {
-            setCurrentUser(found);
+          if (found && (!found.is_banned || found.type === 'ADM')) {
+            const safeUser = found.type === 'ADM' ? { ...found, is_banned: false } : found;
+            setCurrentUser(safeUser);
             setCurrentAnggota(anggota.find((a) => a.id_admin === found.id) || null);
           } else {
             localStorage.removeItem('perpus_session_user');
@@ -60,17 +61,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return { success: false, message: 'Username tidak ditemukan!' };
     }
 
-    if (user.is_banned) {
+    // Akun Administrator kebal terhadap pemblokiran
+    if (user.is_banned && user.type !== 'ADM') {
       return {
         success: false,
         message: `Akun Anda dinonaktifkan/banned oleh Admin. Alasan: ${user.banned_reason || 'Pelanggaran ketentuan perpustakaan.'}`,
       };
     }
 
-    setCurrentUser(user);
+    const effectiveUser = user.type === 'ADM' ? { ...user, is_banned: false } : user;
+    setCurrentUser(effectiveUser);
     const matchedAnggota = anggota.find((a) => a.id_admin === user.id);
     setCurrentAnggota(matchedAnggota || null);
-    localStorage.setItem('perpus_session_user', JSON.stringify(user));
+    localStorage.setItem('perpus_session_user', JSON.stringify(effectiveUser));
 
     return { success: true, message: `Selamat datang kembali, ${user.username}!`, role: user.type };
   };

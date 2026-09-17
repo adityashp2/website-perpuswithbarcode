@@ -206,7 +206,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
           setPengarang(pgData || initialPengarang);
           setPeminjaman(pjData ? pjData.map(mapSupabasePeminjaman) : initialPeminjaman);
           setAnggota(aData || initialAnggota);
-          setAdminUsers(admData || initialAdminUsers);
+          const safeAdmins = (admData || initialAdminUsers).map((u: AdminUser) =>
+            u.type === 'ADM' ? { ...u, is_banned: false, banned_reason: null, banned_at: null } : u
+          );
+          setAdminUsers(safeAdmins);
           if (cfgData) setConfig(cfgData);
           setIsLoading(false);
           return;
@@ -244,13 +247,19 @@ export function DataProvider({ children }: { children: ReactNode }) {
           localStorage.setItem('perpus_anggota', JSON.stringify(initialAnggota));
         }
 
+        const rawAdmin = localAdmin ? JSON.parse(localAdmin) : initialAdminUsers;
+        const parsedAdmin: AdminUser[] = (Array.isArray(rawAdmin) ? rawAdmin : initialAdminUsers).map((u: AdminUser) =>
+          u.type === 'ADM' ? { ...u, is_banned: false, banned_reason: null, banned_at: null } : u
+        );
+        localStorage.setItem('perpus_admin', JSON.stringify(parsedAdmin));
+
         setBuku(parsedBuku);
         setKatalog(localKatalog ? JSON.parse(localKatalog) : initialKatalog);
         setPenerbit(localPenerbit ? JSON.parse(localPenerbit) : initialPenerbit);
         setPengarang(localPengarang ? JSON.parse(localPengarang) : initialPengarang);
         setPeminjaman(parsedPeminjaman);
         setAnggota(parsedAnggota);
-        setAdminUsers(localAdmin ? JSON.parse(localAdmin) : initialAdminUsers);
+        setAdminUsers(parsedAdmin);
         setConfig(localConfig ? JSON.parse(localConfig) : initialConfig);
       } catch {
         setBuku(initialBuku);
@@ -629,6 +638,12 @@ export function DataProvider({ children }: { children: ReactNode }) {
   };
 
   const banUser = async (idAdmin: string, reason: string) => {
+    const target = adminUsers.find((u) => u.id === idAdmin);
+    if (!target || target.type === 'ADM') {
+      console.warn('Proteksi Keamanan: Akun Administrator tidak dapat diblokir/banned!');
+      return;
+    }
+
     const updated = adminUsers.map((u) =>
       u.id === idAdmin ? { ...u, is_banned: true, banned_reason: reason, banned_at: new Date().toISOString() } : u
     );
@@ -693,13 +708,21 @@ export function DataProvider({ children }: { children: ReactNode }) {
   };
 
   const blockAnggota = async (idAnggota: number, reason?: string) => {
+    const target = anggota.find((a) => a.id_anggota === idAnggota);
+    if (target?.id_admin) {
+      const targetUser = adminUsers.find((u) => u.id === target.id_admin);
+      if (targetUser?.type === 'ADM' || target.id_anggota === 1 || target.id_admin === '21232f297a57a5a743894a0e4a801fc3') {
+        console.warn('Proteksi Keamanan: Akun Administrator tidak dapat diblokir!');
+        return;
+      }
+    }
+
     const updated = anggota.map((a) =>
       a.id_anggota === idAnggota ? { ...a, status_keanggotaan: 'blocked' as const } : a
     );
     setAnggota(updated);
     saveLocal('perpus_anggota', updated);
 
-    const target = anggota.find((a) => a.id_anggota === idAnggota);
     if (target?.id_admin) {
       const nextAdmins = adminUsers.map((u) =>
         u.id === target.id_admin ? { ...u, is_banned: true, banned_reason: reason || 'Diblokir oleh sistem (Denda > Rp50.000)', banned_at: new Date().toISOString() } : u

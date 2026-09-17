@@ -115,7 +115,8 @@ html, body {
   user-select: none;
 }
 
-.apple-segment-btn {
+.apple-segment-btn,
+.apple-segmented-btn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -133,12 +134,14 @@ html, body {
   white-space: nowrap;
 }
 
-.apple-segment-btn:hover:not(.active) {
+.apple-segment-btn:hover:not(.active),
+.apple-segmented-btn:hover:not(.active) {
   color: var(--apple-text-primary);
   background: rgba(255, 255, 255, 0.5);
 }
 
-.apple-segment-btn.active {
+.apple-segment-btn.active,
+.apple-segmented-btn.active {
   background: #ffffff;
   color: var(--apple-text-primary);
   font-weight: 600;

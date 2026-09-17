@@ -17,12 +17,14 @@ export default function AdminVerifikasiPage() {
   const pendingList = anggota.filter((a) => a.status_verifikasi === 'PENDING');
   const verifiedList = anggota.filter((a) => {
     const user = adminUsers.find((u) => u.id === a.id_admin);
-    return a.status_verifikasi === 'TERVERIFIKASI' && !user?.is_banned;
+    const isAdminAccount = user?.type === 'ADM' || a.id_admin === '21232f297a57a5a743894a0e4a801fc3' || a.id_anggota === 1;
+    return a.status_verifikasi === 'TERVERIFIKASI' && (!user?.is_banned || isAdminAccount);
   });
   const rejectedList = anggota.filter((a) => a.status_verifikasi === 'DITOLAK');
   const bannedList = anggota.filter((a) => {
     const user = adminUsers.find((u) => u.id === a.id_admin);
-    return user?.is_banned;
+    const isAdminAccount = user?.type === 'ADM' || a.id_admin === '21232f297a57a5a743894a0e4a801fc3' || a.id_anggota === 1;
+    return user?.is_banned && !isAdminAccount;
   });
 
   const getFilteredList = () => {
@@ -109,20 +111,23 @@ export default function AdminVerifikasiPage() {
               key={tab.id}
               type="button"
               onClick={() => setActiveTab(tab.id as typeof activeTab)}
-              className={`apple-segmented-btn ${activeTab === tab.id ? 'active' : ''}`}
-              style={{ whiteSpace: 'nowrap', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+              className={`apple-segment-btn ${activeTab === tab.id ? 'active' : ''}`}
+              style={{ whiteSpace: 'nowrap' }}
             >
               <i className={`bx ${tab.icon}`} />
               <span>{tab.label}</span>
               {tab.count > 0 && (
-                <span style={{
-                  fontSize: '10px',
-                  fontWeight: 700,
-                  padding: '1px 6px',
-                  borderRadius: '99px',
-                  background: activeTab === tab.id ? 'var(--apple-accent)' : 'rgba(0,0,0,0.06)',
-                  color: activeTab === tab.id ? '#ffffff' : 'var(--apple-text-secondary)',
-                }}>
+                <span
+                  style={{
+                    fontSize: '11px',
+                    fontWeight: 600,
+                    padding: '1px 7px',
+                    borderRadius: 'var(--apple-radius-pill)',
+                    background: activeTab === tab.id ? 'rgba(0, 113, 227, 0.12)' : 'rgba(0, 0, 0, 0.06)',
+                    color: activeTab === tab.id ? 'var(--apple-accent)' : 'var(--apple-text-secondary)',
+                    lineHeight: 1.3,
+                  }}
+                >
                   {tab.count}
                 </span>
               )}
@@ -193,7 +198,8 @@ export default function AdminVerifikasiPage() {
               ) : (
                 currentList.map((row, idx) => {
                   const userAccount = adminUsers.find((u) => u.id === row.id_admin);
-                  const isBanned = userAccount?.is_banned;
+                  const isAdminAccount = userAccount?.type === 'ADM' || row.id_admin === '21232f297a57a5a743894a0e4a801fc3' || row.id_anggota === 1;
+                  const isBanned = userAccount?.is_banned && !isAdminAccount;
 
                   return (
                     <tr key={row.id_anggota}>
@@ -246,22 +252,28 @@ export default function AdminVerifikasiPage() {
                       <td style={{ fontSize: '12.5px', color: 'var(--apple-text-secondary)' }}>{row.tgl_entry}</td>
 
                       <td>
-                        {row.status_verifikasi === 'TERVERIFIKASI' && (
-                          <span className="badge badge-success"><i className="bx bx-check" /> Terverifikasi</span>
-                        )}
-                        {row.status_verifikasi === 'PENDING' && (
-                          <span className="badge badge-warning"><i className="bx bx-time" /> Menunggu</span>
-                        )}
-                        {row.status_verifikasi === 'DITOLAK' && (
-                          <span className="badge badge-danger"><i className="bx bx-x" /> Ditolak</span>
-                        )}
-                        {isBanned && (
-                          <span className="badge badge-danger" style={{ display: 'inline-block', marginTop: '4px' }}>BANNED</span>
+                        {isAdminAccount ? (
+                          <span className="badge badge-info"><i className="bx bx-shield-quarter" /> Staf Admin</span>
+                        ) : (
+                          <>
+                            {row.status_verifikasi === 'TERVERIFIKASI' && (
+                              <span className="badge badge-success"><i className="bx bx-check" /> Terverifikasi</span>
+                            )}
+                            {row.status_verifikasi === 'PENDING' && (
+                              <span className="badge badge-warning"><i className="bx bx-time" /> Menunggu</span>
+                            )}
+                            {row.status_verifikasi === 'DITOLAK' && (
+                              <span className="badge badge-danger"><i className="bx bx-x" /> Ditolak</span>
+                            )}
+                            {isBanned && (
+                              <span className="badge badge-danger" style={{ display: 'inline-block', marginTop: '4px' }}>BANNED</span>
+                            )}
+                          </>
                         )}
                       </td>
 
                       <td style={{ textAlign: 'right' }}>
-                        <div style={{ display: 'inline-flex', gap: '6px' }}>
+                        <div style={{ display: 'inline-flex', gap: '6px', alignItems: 'center' }}>
                           {row.status_verifikasi === 'PENDING' && (
                             <>
                               <button
@@ -285,7 +297,20 @@ export default function AdminVerifikasiPage() {
                             </>
                           )}
 
-                          {userAccount && (
+                          {isAdminAccount ? (
+                            <span
+                              style={{
+                                fontSize: '11.5px',
+                                color: 'var(--apple-accent)',
+                                padding: '4px 8px',
+                                fontWeight: 500,
+                                background: 'rgba(0, 113, 227, 0.08)',
+                                borderRadius: 'var(--apple-radius-pill)',
+                              }}
+                            >
+                              Kebal Blokir
+                            </span>
+                          ) : userAccount ? (
                             <button
                               type="button"
                               onClick={() => {
@@ -308,7 +333,7 @@ export default function AdminVerifikasiPage() {
                             >
                               <i className={`bx ${isBanned ? 'bx-lock-open' : 'bx-block'}`} />
                             </button>
-                          )}
+                          ) : null}
                         </div>
                       </td>
                     </tr>
