@@ -1,0 +1,973 @@
+/* ==========================================================================
+   PustakaScan — Clean Modular Landing Page Styles (BEM & Mobile-First)
+   Standardized Commercial Layout Architecture
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. Root Page Container
+   -------------------------------------------------------------------------- */
+.ps-landing {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2xl, 3rem);
+  width: 100%;
+  max-width: 100%;
+  padding-bottom: var(--sp-2xl, 3rem);
+}
+
+/* --------------------------------------------------------------------------
+   2. User Banner (Logged In)
+   -------------------------------------------------------------------------- */
+.ps-banner {
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  display: flex;
+  justifyContent: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  color: #ffffff;
+}
+
+.ps-banner--admin {
+  background: linear-gradient(135deg, #0071e3 0%, #1e40af 100%);
+}
+
+.ps-banner--member {
+  background: linear-gradient(135deg, #059669 0%, #064e3b 100%);
+}
+
+.ps-banner__info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.ps-banner__icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.ps-banner__title {
+  font-weight: 700;
+  font-size: 0.9375rem;
+  line-height: 1.3;
+}
+
+.ps-banner__desc {
+  font-size: 0.8125rem;
+  opacity: 0.9;
+  margin-top: 0.125rem;
+}
+
+.ps-banner__action-btn {
+  background: #ffffff;
+  border: none;
+  padding: 0.5rem 1rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  text-decoration: none;
+  min-height: 38px;
+}
+
+.ps-banner--admin .ps-banner__action-btn {
+  color: #0071e3;
+}
+
+.ps-banner--member .ps-banner__action-btn {
+  color: #059669;
+}
+
+/* --------------------------------------------------------------------------
+   3. Hero Section (#home)
+   -------------------------------------------------------------------------- */
+.ps-hero {
+  position: relative;
+  padding: 1.75rem 1.25rem;
+  border-radius: 16px;
+  background: #ffffff;
+  border: 1px solid rgba(0, 113, 227, 0.12);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+  align-items: center;
+  overflow: hidden;
+}
+
+@media (min-width: 900px) {
+  .ps-hero {
+    padding: 2.5rem 2.25rem;
+    border-radius: 20px;
+    grid-template-columns: 1.15fr 0.85fr;
+    gap: 2.5rem;
+  }
+}
+
+.ps-hero__content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 1.125rem;
+}
+
+.ps-hero__tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.3125rem 0.75rem;
+  border-radius: 99px;
+  background: rgba(0, 113, 227, 0.08);
+  color: #0071e3;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  width: fit-content;
+}
+
+.ps-hero__tag-icon {
+  width: 1rem;
+  height: 1rem;
+  object-fit: contain;
+}
+
+.ps-hero__title {
+  font-size: clamp(1.75rem, 3.5vw, 2.375rem);
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+  color: #0f172a;
+  margin: 0;
+}
+
+.ps-hero__desc {
+  font-size: 1rem;
+  color: #475569;
+  line-height: 1.6;
+  max-width: 54ch;
+  margin: 0;
+}
+
+.ps-hero__actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  padding-top: 0.25rem;
+}
+
+.ps-hero__btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.6875rem 1.375rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #ffffff;
+  background: #0071e3;
+  border: 1px solid #0071e3;
+  border-radius: 10px;
+  text-decoration: none;
+  min-height: 44px;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.ps-hero__btn-primary:hover {
+  background: #005bb5;
+  border-color: #005bb5;
+}
+
+.ps-hero__btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.6875rem 1.25rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #0071e3;
+  background: #ffffff;
+  border: 1.5px solid rgba(0, 113, 227, 0.25);
+  border-radius: 10px;
+  text-decoration: none;
+  min-height: 44px;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.ps-hero__btn-secondary:hover {
+  background: rgba(0, 113, 227, 0.05);
+  border-color: #0071e3;
+}
+
+.ps-hero__metrics {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e2e8f0;
+  flex-wrap: wrap;
+}
+
+.ps-hero__metric-value {
+  font-size: 1.375rem;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.ps-hero__metric-value--blue { color: #0071e3; }
+.ps-hero__metric-value--orange { color: #ea580c; }
+.ps-hero__metric-value--green { color: #16a34a; }
+
+.ps-hero__metric-label {
+  font-size: 0.75rem;
+  color: #64748b;
+  font-weight: 500;
+  margin-top: 0.125rem;
+}
+
+.ps-hero__metric-divider {
+  width: 1px;
+  height: 28px;
+  background: #cbd5e1;
+}
+
+/* Hero Right: Presentation Simulation Card */
+.ps-hero__preview {
+  position: relative;
+  z-index: 2;
+}
+
+.ps-hero__card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 1.25rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+}
+
+.ps-hero__card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.ps-hero__card-badge {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.ps-hero__status-indicator {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #22c55e;
+}
+
+.ps-hero__scan-ready {
+  font-size: 0.6875rem;
+  font-family: monospace;
+  color: #0071e3;
+  background: rgba(0, 113, 227, 0.08);
+  padding: 0.1875rem 0.5rem;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.ps-hero__book-item {
+  display: flex;
+  gap: 0.875rem;
+  padding: 0.75rem;
+  border-radius: 10px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.ps-hero__book-cover {
+  width: 44px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  flex-shrink: 0;
+}
+
+.ps-hero__book-info {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.ps-hero__item-tag {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #0071e3;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.ps-hero__book-name {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-top: 0.125rem;
+  line-height: 1.3;
+}
+
+.ps-hero__book-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  margin-top: 0.25rem;
+}
+
+.ps-hero__barcode-pill {
+  font-family: monospace;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  padding: 0.0625rem 0.375rem;
+  border-radius: 4px;
+  background: rgba(0, 113, 227, 0.1);
+  color: #0071e3;
+}
+
+.ps-hero__rack-text {
+  font-size: 0.6875rem;
+  color: #64748b;
+}
+
+.ps-hero__member-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6875rem 0.75rem;
+  border-radius: 10px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+}
+
+.ps-hero__member-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(0, 113, 227, 0.12);
+  color: #0071e3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.75rem;
+}
+
+.ps-hero__member-name {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.ps-hero__member-id {
+  font-size: 0.6875rem;
+  color: #64748b;
+  font-family: monospace;
+}
+
+.ps-hero__clean-status {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  padding: 0.1875rem 0.5rem;
+  border-radius: 99px;
+  background: rgba(34, 197, 94, 0.12);
+  color: #15803d;
+}
+
+.ps-hero__thermal-slip {
+  padding: 0.625rem 0.75rem;
+  border-radius: 8px;
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  font-size: 0.6875rem;
+  font-family: monospace;
+  color: #64748b;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.ps-hero__slip-row {
+  display: flex;
+  justify-content: space-between;
+}
+
+.ps-hero__card-cta {
+  width: 100%;
+  justify-content: center;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  gap: 0.375rem;
+  padding: 0.5rem;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  text-decoration: none;
+  color: #ffffff;
+  background: #0071e3;
+}
+
+/* --------------------------------------------------------------------------
+   4. Section Headers (Standardized Heading Scale)
+   -------------------------------------------------------------------------- */
+.ps-section {
+  scroll-margin-top: 72px;
+}
+
+.ps-section__header {
+  text-align: center;
+  max-width: 60ch;
+  margin: 0 auto 1.75rem;
+}
+
+.ps-section__tag {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #64748b;
+  display: block;
+  margin-bottom: 0.375rem;
+}
+
+.ps-section__title {
+  font-size: clamp(1.375rem, 2.5vw, 1.75rem);
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.02em;
+  margin: 0 0 0.5rem;
+  line-height: 1.3;
+}
+
+.ps-section__subtitle {
+  font-size: 0.9375rem;
+  color: #64748b;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* --------------------------------------------------------------------------
+   5. Section 2: Tentang Kami
+   -------------------------------------------------------------------------- */
+.ps-about-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  align-items: stretch;
+}
+
+@media (min-width: 768px) {
+  .ps-about-grid {
+    grid-template-columns: 1fr 1.25fr;
+  }
+}
+
+.ps-about-card {
+  padding: 1.5rem;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  display: flex;
+  flex-direction: column;
+  justifyContent: space-between;
+}
+
+.ps-about-card--center {
+  align-items: center;
+  text-align: center;
+}
+
+.ps-about-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+  background: rgba(0, 113, 227, 0.1);
+  color: #0071e3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.75rem;
+  margin-bottom: 1rem;
+}
+
+.ps-about-card__title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 0.5rem;
+}
+
+.ps-about-card__desc {
+  font-size: 0.875rem;
+  color: #475569;
+  line-height: 1.65;
+  margin: 0 0 1rem;
+}
+
+.ps-about-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.75rem;
+  border-radius: 99px;
+  background: rgba(34, 197, 94, 0.1);
+  color: #15803d;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.ps-about-narrative {
+  padding: 1.25rem 1.375rem;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  line-height: 1.65;
+  font-size: 0.875rem;
+  color: #475569;
+}
+
+.ps-about-narrative p {
+  margin: 0 0 0.625rem;
+}
+
+.ps-about-narrative p:last-child {
+  margin: 0;
+}
+
+.ps-about-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.875rem;
+  margin-top: 1rem;
+}
+
+.ps-about-stat-box {
+  border-radius: 10px;
+  padding: 0.875rem;
+  text-align: center;
+  border: 1px solid transparent;
+}
+
+.ps-about-stat-box--blue {
+  background: rgba(0, 113, 227, 0.05);
+  border-color: rgba(0, 113, 227, 0.15);
+}
+
+.ps-about-stat-box--orange {
+  background: rgba(234, 88, 12, 0.05);
+  border-color: rgba(234, 88, 12, 0.15);
+}
+
+.ps-about-stat-num {
+  font-size: 1.375rem;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.ps-about-stat-box--blue .ps-about-stat-num { color: #0071e3; }
+.ps-about-stat-box--orange .ps-about-stat-num { color: #ea580c; }
+
+.ps-about-stat-text {
+  font-size: 0.75rem;
+  color: #64748b;
+  font-weight: 600;
+  margin-top: 0.25rem;
+}
+
+/* --------------------------------------------------------------------------
+   6. Section 3: Keunggulan Fitur
+   -------------------------------------------------------------------------- */
+.ps-features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
+  gap: 1.25rem;
+}
+
+.ps-feature-card {
+  padding: 1.25rem 1.375rem;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+  display: flex;
+  flex-direction: column;
+  justifyContent: space-between;
+}
+
+.ps-feature-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  margin-bottom: 0.875rem;
+}
+
+.ps-feature-icon--blue { background: rgba(0, 113, 227, 0.1); color: #0071e3; }
+.ps-feature-icon--orange { background: rgba(234, 88, 12, 0.1); color: #ea580c; }
+.ps-feature-icon--green { background: rgba(34, 197, 94, 0.12); color: #16a34a; }
+.ps-feature-icon--purple { background: rgba(124, 58, 237, 0.12); color: #7c3aed; }
+
+.ps-feature-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 0.375rem;
+}
+
+.ps-feature-desc {
+  font-size: 0.8125rem;
+  color: #64748b;
+  line-height: 1.55;
+  margin: 0;
+}
+
+.ps-feature-tag {
+  margin-top: 1rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.ps-feature-tag--blue { color: #0071e3; }
+.ps-feature-tag--orange { color: #ea580c; }
+.ps-feature-tag--green { color: #16a34a; }
+.ps-feature-tag--purple { color: #7c3aed; }
+
+/* --------------------------------------------------------------------------
+   7. Section 4: Koleksi Buku
+   -------------------------------------------------------------------------- */
+.ps-catalog-bar {
+  display: flex;
+  justifyContent: space-between;
+  align-items: flex-end;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.ps-catalog-wrapper {
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  padding: 1.25rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
+}
+
+.ps-book-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 180px), 1fr));
+  gap: 1rem;
+}
+
+.ps-book-card {
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.ps-book-cover {
+  height: 170px;
+  position: relative;
+  background: #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ps-book-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.ps-book-stock-badge {
+  position: absolute;
+  top: 0.375rem;
+  right: 0.375rem;
+}
+
+.ps-book-stock-badge span {
+  font-size: 0.6875rem;
+  padding: 0.125rem 0.5rem;
+  border-radius: 99px;
+  font-weight: 600;
+}
+
+.ps-book-stock-badge .badge-success { background: #dcfce7; color: #15803d; }
+.ps-book-stock-badge .badge-danger { background: #fee2e2; color: #b91c1c; }
+
+.ps-book-body {
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.ps-book-katalog {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: #0071e3;
+}
+
+.ps-book-title {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  margin: 0.25rem 0 0.375rem;
+  line-height: 1.35;
+  color: #0f172a;
+}
+
+.ps-book-meta {
+  font-size: 0.75rem;
+  color: #64748b;
+  margin-top: auto;
+}
+
+.ps-book-btn-wrap {
+  margin-top: 0.625rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid #f1f5f9;
+}
+
+.ps-book-btn {
+  width: 100%;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.375rem;
+  border-radius: 6px;
+  min-height: 36px;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  background: #0071e3;
+  color: #ffffff;
+}
+
+/* --------------------------------------------------------------------------
+   8. Section 5: FAQ Accordion
+   -------------------------------------------------------------------------- */
+.ps-faq-list {
+  max-width: 740px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.ps-faq-item {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  overflow: hidden;
+  transition: border-color 0.15s ease;
+}
+
+.ps-faq-item--active {
+  border-color: #0071e3;
+}
+
+.ps-faq-btn {
+  width: 100%;
+  padding: 0.875rem 1.125rem;
+  display: flex;
+  justifyContent: space-between;
+  align-items: center;
+  background: transparent;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  gap: 0.75rem;
+  min-height: 48px;
+}
+
+.ps-faq-question {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.ps-faq-item--active .ps-faq-question {
+  color: #0071e3;
+}
+
+.ps-faq-icon {
+  font-size: 1.25rem;
+  color: #94a3b8;
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+}
+
+.ps-faq-item--active .ps-faq-icon {
+  transform: rotate(180deg);
+  color: #0071e3;
+}
+
+.ps-faq-answer {
+  padding: 0 1.125rem 0.875rem;
+  font-size: 0.875rem;
+  color: #475569;
+  line-height: 1.6;
+  border-top: 1px solid #f8fafc;
+  padding-top: 0.625rem;
+}
+
+/* --------------------------------------------------------------------------
+   9. Section 6: Pendaftaran & Akses
+   -------------------------------------------------------------------------- */
+.ps-pathways-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+  gap: 1rem;
+}
+
+.ps-pathway-card {
+  padding: 1.375rem;
+  display: flex;
+  flex-direction: column;
+  justifyContent: space-between;
+  border-radius: 12px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+}
+
+.ps-pathway-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.375rem;
+  margin-bottom: 0.75rem;
+}
+
+.ps-pathway-card__title {
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 0 0 0.375rem;
+  color: #0f172a;
+}
+
+.ps-pathway-card__desc {
+  font-size: 0.8125rem;
+  color: #64748b;
+  line-height: 1.55;
+  margin: 0 0 1rem;
+}
+
+.ps-pathway-btn {
+  justify-content: center;
+  padding: 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  border-radius: 8px;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+}
+
+/* --------------------------------------------------------------------------
+   10. Section 7: Kontak
+   -------------------------------------------------------------------------- */
+.ps-contact-card {
+  padding: 1.5rem;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  align-items: center;
+}
+
+@media (min-width: 768px) {
+  .ps-contact-card {
+    grid-template-columns: 1fr 1fr;
+    padding: 2rem;
+  }
+}
+
+.ps-contact__wa-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem 1.125rem;
+  border-radius: 10px;
+  background: #25d366;
+  color: #ffffff;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 0.875rem;
+  min-height: 44px;
+}
+
+.ps-contact__details {
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 1.125rem 1.25rem;
+  border: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.ps-contact__detail-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.625rem;
+}
+
+.ps-contact__detail-label {
+  font-weight: 700;
+  font-size: 0.8125rem;
+  color: #0f172a;
+}
+
+.ps-contact__detail-val {
+  font-size: 0.75rem;
+  color: #64748b;
+  margin-top: 0.125rem;
+  line-height: 1.45;
+}
+
+/* --------------------------------------------------------------------------
+   11. Landing Header Responsive Navigation
+   -------------------------------------------------------------------------- */
+@media (max-width: 880px) {
+  .landing-header-nav {
+    display: none !important;
+  }
+}
+

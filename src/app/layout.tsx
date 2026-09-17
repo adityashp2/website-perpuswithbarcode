@@ -5,8 +5,8 @@ import { AuthProvider } from '@/lib/authContext';
 import AppLayoutWrapper from '@/components/AppLayoutWrapper';
 
 export const metadata: Metadata = {
-  title: 'Pustaka Polinela | Perpustakaan Politeknik Negeri Lampung',
-  description: 'Sistem Informasi Manajemen Perpustakaan Terpadu Politeknik Negeri Lampung dengan Barcode dan Sirkulasi Digital.',
+  title: 'PustakaScan — Sistem Sirkulasi Perpustakaan Cepat ala Kasir Indomaret',
+  description: 'Website Perpustakaan Profesional dengan Mode Kasir Cepat, Barcode Scanner Keyboard-Wedge, dan Estetika Apple Human Interface Guidelines.',
 };
 
 export default function RootLayout({
@@ -15,9 +15,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="id">
+    <html lang="id" data-scroll-behavior="smooth">
       <head>
-        {/* Boxicons CDN for exact matching icons from original PHP */}
+        {/* Boxicons CDN */}
         <link
           href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css"
           rel="stylesheet"

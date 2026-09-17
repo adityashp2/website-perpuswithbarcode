@@ -12,6 +12,7 @@ interface AuthContextType {
   isAuthReady: boolean;
   login: (username: string) => { success: boolean; message: string; role?: AdminUser['type'] };
   logout: () => void;
+  updateCurrentAnggota: (updated: Partial<Anggota>) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -45,6 +46,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
     void restoreSession();
   }, [adminUsers, anggota]);
+
+  const updateCurrentAnggota = (updated: Partial<Anggota>) => {
+    setCurrentAnggota((prev) => (prev ? { ...prev, ...updated } : null));
+  };
 
   const login = (username: string) => {
     const user = adminUsers.find(
@@ -87,6 +92,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isAuthReady,
         login,
         logout,
+        updateCurrentAnggota,
       }}
     >
       {children}

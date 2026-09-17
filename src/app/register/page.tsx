@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useData } from '@/lib/dataContext';
 import { useAuth } from '@/lib/authContext';
+import { compressImageUnder200KB } from '@/lib/imageCompressor';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -21,18 +22,26 @@ export default function RegisterPage() {
   });
 
   const [ktmFilePreview, setKtmFilePreview] = useState<string | null>(null);
+  const [compressInfo, setCompressInfo] = useState<{ origKb: number; compKb: number } | null>(null);
+  const [isCompressing, setIsCompressing] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setKtmFilePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+    if (!file) return;
+
+    setIsCompressing(true);
+    setErrorMsg('');
+    try {
+      const result = await compressImageUnder200KB(file, { maxKb: 190 });
+      setKtmFilePreview(result.dataUrl);
+      setCompressInfo({ origKb: result.originalSizeKb, compKb: result.compressedSizeKb });
+    } catch {
+      setErrorMsg('Gagal memproses dan mengompres foto. Silakan coba pilih file gambar lain.');
+    } finally {
+      setIsCompressing(false);
     }
   };
 
@@ -71,37 +80,59 @@ export default function RegisterPage() {
   };
 
   return (
-    <div style={{ maxWidth: '680px', margin: '30px auto' }}>
-      <div className="card" style={{ padding: '32px', boxShadow: 'var(--shadow-lg)' }}>
+    <div style={{ maxWidth: '680px', width: '100%', margin: '16px auto 32px', padding: '0 16px' }}>
+      <div
+        className="apple-card"
+        style={{
+          padding: 'clamp(24px, 5vw, 40px)',
+          background: 'rgba(255, 255, 255, 0.94)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          border: '1px solid var(--apple-border)',
+        }}
+      >
         <div style={{ textAlign: 'center', marginBottom: '28px' }}>
-          <div style={{ width: '56px', height: '56px', background: 'var(--primary-light)', color: 'var(--primary)', borderRadius: 'var(--radius-md)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '28px', margin: '0 auto 16px' }}>
+          <div
+            style={{
+              width: '52px',
+              height: '52px',
+              background: 'var(--apple-accent-subtle)',
+              color: 'var(--apple-accent)',
+              borderRadius: '14px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '24px',
+              margin: '0 auto 16px',
+            }}
+          >
             <i className="bx bxs-user-plus"></i>
           </div>
-          <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '22px', fontWeight: 700, color: '#0f172a', margin: 0 }}>
+          <h2 style={{ fontSize: '22px', fontWeight: 600, letterSpacing: '-0.02em', color: 'var(--apple-text-primary)', margin: 0 }}>
             Pendaftaran Anggota Baru
           </h2>
-          <p style={{ color: 'var(--text-muted)', fontSize: '13.5px', marginTop: '4px' }}>
-            Daftar akun untuk meminjam buku dan mengakses layanan sirkulasi. Verifikasi KTM diperlukan sebelum akun aktif meminjam.
+          <p style={{ color: 'var(--apple-text-secondary)', fontSize: '13.5px', marginTop: '6px', lineHeight: 1.45 }}>
+            Daftarkan diri Anda untuk mendapatkan akses peminjaman buku digital dan kartu anggota fisik di perpustakaan.
           </p>
         </div>
 
         {errorMsg && (
-          <div className="alert alert-danger" style={{ marginBottom: '16px' }}>
+          <div className="alert alert-danger" style={{ marginBottom: '20px' }}>
             <i className="bx bx-error-circle" style={{ fontSize: '18px' }}></i>
             <div>{errorMsg}</div>
           </div>
         )}
 
         {successMsg && (
-          <div className="alert alert-success" style={{ marginBottom: '16px' }}>
+          <div className="alert alert-success" style={{ marginBottom: '20px' }}>
             <i className="bx bx-check-circle" style={{ fontSize: '18px' }}></i>
             <div>{successMsg}</div>
           </div>
         )}
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div className="form-grid">
-            <div className="form-group">
+            <div className="form-group" style={{ marginBottom: 0 }}>
               <label className="form-label">Username <span className="required">*</span></label>
               <input
                 type="text"
@@ -111,16 +142,16 @@ export default function RegisterPage() {
                 value={formData.username}
                 onChange={(e) => setFormData({ ...formData, username: e.target.value })}
               />
-              <div className="form-hint">Digunakan untuk masuk ke sistem</div>
+              <div className="form-hint">Digunakan saat masuk ke sistem</div>
             </div>
 
-            <div className="form-group">
+            <div className="form-group" style={{ marginBottom: 0 }}>
               <label className="form-label">Nama Lengkap <span className="required">*</span></label>
               <input
                 type="text"
                 required
                 className="form-control"
-                placeholder="Nama lengkap sesuai KTM"
+                placeholder="Sesuai nama di KTM"
                 value={formData.nama}
                 onChange={(e) => setFormData({ ...formData, nama: e.target.value })}
               />
@@ -128,7 +159,7 @@ export default function RegisterPage() {
           </div>
 
           <div className="form-grid">
-            <div className="form-group">
+            <div className="form-group" style={{ marginBottom: 0 }}>
               <label className="form-label">Alamat Email <span className="required">*</span></label>
               <input
                 type="email"
@@ -140,7 +171,7 @@ export default function RegisterPage() {
               />
             </div>
 
-            <div className="form-group">
+            <div className="form-group" style={{ marginBottom: 0 }}>
               <label className="form-label">No. Telepon / WhatsApp <span className="required">*</span></label>
               <input
                 type="text"
@@ -154,7 +185,7 @@ export default function RegisterPage() {
           </div>
 
           <div className="form-grid">
-            <div className="form-group">
+            <div className="form-group" style={{ marginBottom: 0 }}>
               <label className="form-label">Jenis Kelamin <span className="required">*</span></label>
               <select
                 className="form-control"
@@ -166,7 +197,7 @@ export default function RegisterPage() {
               </select>
             </div>
 
-            <div className="form-group">
+            <div className="form-group" style={{ marginBottom: 0 }}>
               <label className="form-label">Alamat Domisili <span className="required">*</span></label>
               <input
                 type="text"
@@ -180,9 +211,17 @@ export default function RegisterPage() {
           </div>
 
           {/* KTM Upload Section */}
-          <div className="form-group" style={{ background: 'var(--primary-light)', border: '1px solid var(--card-border)', borderRadius: 'var(--radius-md)', padding: '18px', marginTop: '10px' }}>
-            <label className="form-label" style={{ color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <i className="bx bx-id-card" style={{ fontSize: '18px' }}></i>
+          <div
+            style={{
+              background: 'rgba(0, 0, 0, 0.02)',
+              border: '1px solid var(--apple-border)',
+              borderRadius: 'var(--apple-radius-md)',
+              padding: '18px',
+              marginTop: '6px',
+            }}
+          >
+            <label className="form-label" style={{ color: 'var(--apple-text-primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <i className="bx bx-id-card" style={{ fontSize: '18px', color: 'var(--apple-accent)' }}></i>
               <span>Foto / Scan Kartu Tanda Mahasiswa (KTM)</span>
             </label>
             <div style={{ display: 'flex', gap: '16px', alignItems: 'center', marginTop: '10px', flexWrap: 'wrap' }}>
@@ -191,11 +230,11 @@ export default function RegisterPage() {
                 <img
                   src={ktmFilePreview}
                   alt="KTM"
-                  style={{ width: '120px', height: '80px', objectFit: 'cover', borderRadius: 'var(--radius-md)', border: '2px solid var(--primary)' }}
+                  style={{ width: '120px', height: '80px', objectFit: 'cover', borderRadius: 'var(--apple-radius-md)', border: '2px solid var(--apple-accent)' }}
                 />
               ) : (
-                <div style={{ width: '120px', height: '80px', borderRadius: 'var(--radius-md)', border: '2px dashed var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fff' }}>
-                  <i className="bx bx-image-add" style={{ fontSize: '28px', color: 'var(--primary)' }}></i>
+                <div style={{ width: '120px', height: '80px', borderRadius: 'var(--apple-radius-md)', border: '1px dashed var(--apple-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fff' }}>
+                  <i className="bx bx-image-add" style={{ fontSize: '28px', color: 'var(--apple-text-tertiary)' }}></i>
                 </div>
               )}
               <div style={{ flex: 1 }}>
@@ -206,8 +245,20 @@ export default function RegisterPage() {
                   className="form-control"
                   style={{ background: '#fff' }}
                 />
-                <div className="form-hint" style={{ color: '#475569' }}>
-                  Wajib diunggah untuk verifikasi status mahasiswa aktif Polinela.
+                {isCompressing && (
+                  <div style={{ fontSize: '12px', color: 'var(--apple-accent)', marginTop: '6px', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <i className="bx bx-loader-alt bx-spin" style={{ fontSize: '15px' }} />
+                    <span>Mengompresi gambar otomatis di bawah 200 KB...</span>
+                  </div>
+                )}
+                {compressInfo && !isCompressing && (
+                  <div style={{ fontSize: '12px', color: 'var(--apple-success-text)', marginTop: '6px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <i className="bx bx-check-shield" style={{ fontSize: '15px' }} />
+                    <span>Foto terkompresi otomatis: {compressInfo.origKb} KB ➔ {compressInfo.compKb} KB (Di bawah 200 KB ✓)</span>
+                  </div>
+                )}
+                <div className="form-hint" style={{ color: 'var(--apple-text-secondary)', marginTop: '6px' }}>
+                  Wajib diunggah untuk verifikasi keaktifan (otomatis dikompres di bawah 200 KB).
                 </div>
               </div>
             </div>
@@ -216,17 +267,30 @@ export default function RegisterPage() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="btn btn-primary"
-            style={{ width: '100%', padding: '12px', fontSize: '14px', marginTop: '12px' }}
+            className="apple-btn-primary"
+            style={{ width: '100%', minHeight: '42px', fontSize: '14.5px', marginTop: '8px' }}
           >
             <i className="bx bx-user-plus"></i> {isSubmitting ? 'Mendaftarkan...' : 'Kirim Pendaftaran Anggota'}
           </button>
         </form>
 
-        <div style={{ marginTop: '24px', paddingTop: '20px', borderTop: '1px solid var(--card-border)', textAlign: 'center', fontSize: '13px', color: 'var(--text-muted)' }}>
-          Sudah memiliki akun? <Link href="/login" style={{ fontWeight: 600 }}>Masuk di sini</Link>
+        <div
+          style={{
+            marginTop: '24px',
+            paddingTop: '20px',
+            borderTop: '1px solid var(--apple-border-subtle)',
+            textAlign: 'center',
+            fontSize: '13px',
+            color: 'var(--apple-text-secondary)',
+          }}
+        >
+          Sudah memiliki akun anggota?{' '}
+          <Link href="/login" style={{ fontWeight: 600, color: 'var(--apple-accent)' }}>
+            Masuk di sini
+          </Link>
         </div>
       </div>
     </div>
   );
 }
+

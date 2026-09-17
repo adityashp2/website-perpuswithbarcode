@@ -67,58 +67,61 @@ export default function AdminVerifikasiPage() {
 
   return (
     <>
-      <div className="page-header">
+      <div className="page-header" style={{ marginBottom: '28px' }}>
         <div className="page-header-info">
-          <h1>
-            <i className="bx bxs-user-detail" style={{ color: 'var(--primary)' }}></i> Kelola Pengguna &amp; Pendaftaran
+          <h1 style={{ fontSize: '28px', fontWeight: 700, letterSpacing: '-0.025em', color: 'var(--apple-text-primary)' }}>
+            Kelola Pengguna &amp; Pendaftaran
           </h1>
-          <p>Kelola verifikasi pendaftaran anggota baru, penolakan, pemblokiran (banned), hingga pembukaan akun anggota.</p>
+          <p style={{ fontSize: '14px', color: 'var(--apple-text-secondary)', marginTop: '4px' }}>
+            Verifikasi pendaftaran anggota baru, validasi KTM, hingga manajemen akun anggota.
+          </p>
         </div>
         <div className="page-actions" style={{ display: 'flex', gap: '8px' }}>
           {pendingList.length > 0 && (
-            <span className="badge badge-warning" style={{ fontSize: '13px', padding: '8px 14px' }}>
-              <i className="bx bx-bell"></i> {pendingList.length} Menunggu ACC
+            <span className="badge badge-warning" style={{ fontSize: '12px', padding: '6px 14px' }}>
+              <i className="bx bx-bell" /> {pendingList.length} Menunggu ACC
             </span>
           )}
-          <span className="badge badge-success" style={{ fontSize: '13px', padding: '8px 14px' }}>
-            <i className="bx bx-check-shield"></i> {verifiedList.length} Aktif
+          <span className="badge badge-success" style={{ fontSize: '12px', padding: '6px 14px' }}>
+            <i className="bx bx-check-shield" /> {verifiedList.length} Aktif
           </span>
         </div>
       </div>
 
       {feedback && (
-        <div className="alert alert-success">
-          <i className="bx bx-check-circle" style={{ fontSize: '20px' }}></i>
+        <div className="alert alert-success" style={{ marginBottom: '24px', animation: 'slideDown 0.3s cubic-bezier(0.16, 1, 0.3, 1)' }}>
+          <i className="bx bx-check-circle" style={{ fontSize: '20px' }} />
           <div>{feedback}</div>
         </div>
       )}
 
-      {/* Tabs Nav */}
-      <div style={{ display: 'flex', gap: '8px', marginBottom: '20px', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+      {/* Tabs & Search Bar */}
+      <div style={{ display: 'flex', gap: '16px', marginBottom: '24px', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div className="apple-segmented-control" style={{ overflowX: 'auto', maxWidth: '100%' }}>
           {[
-            { id: 'pending', label: 'Menunggu ACC', icon: 'bx-time', count: pendingList.length, color: 'var(--warning)' },
-            { id: 'verified', label: 'Terverifikasi', icon: 'bx-check-circle', count: verifiedList.length, color: 'var(--success)' },
-            { id: 'rejected', label: 'Ditolak', icon: 'bx-x-circle', count: rejectedList.length, color: 'var(--danger)' },
-            { id: 'banned', label: 'Diblokir', icon: 'bx-block', count: bannedList.length, color: '#64748b' },
-            { id: 'all', label: 'Semua Anggota', icon: 'bx-user', count: anggota.length, color: 'var(--primary)' },
+            { id: 'pending',  label: 'Menunggu ACC', icon: 'bx-time',         count: pendingList.length },
+            { id: 'verified', label: 'Terverifikasi',icon: 'bx-check-circle', count: verifiedList.length },
+            { id: 'rejected', label: 'Ditolak',      icon: 'bx-x-circle',     count: rejectedList.length },
+            { id: 'banned',   label: 'Diblokir',     icon: 'bx-block',        count: bannedList.length },
+            { id: 'all',      label: 'Semua',        icon: 'bx-user',         count: anggota.length },
           ].map((tab) => (
             <button
               key={tab.id}
+              type="button"
               onClick={() => setActiveTab(tab.id as typeof activeTab)}
-              className={`btn ${activeTab === tab.id ? 'btn-primary' : 'btn-secondary'}`}
-              style={{ borderRadius: 'var(--radius-md)', padding: '9px 16px', gap: '6px' }}
+              className={`apple-segmented-btn ${activeTab === tab.id ? 'active' : ''}`}
+              style={{ whiteSpace: 'nowrap', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
             >
-              <i className={`bx ${tab.icon}`}></i>
+              <i className={`bx ${tab.icon}`} />
               <span>{tab.label}</span>
               {tab.count > 0 && (
                 <span style={{
-                  background: activeTab === tab.id ? '#ffffff' : tab.color,
-                  color: activeTab === tab.id ? 'var(--primary)' : '#ffffff',
+                  fontSize: '10px',
                   fontWeight: 700,
-                  fontSize: '11px',
-                  padding: '1px 7px',
-                  borderRadius: 'var(--radius-full)'
+                  padding: '1px 6px',
+                  borderRadius: '99px',
+                  background: activeTab === tab.id ? 'var(--apple-accent)' : 'rgba(0,0,0,0.06)',
+                  color: activeTab === tab.id ? '#ffffff' : 'var(--apple-text-secondary)',
                 }}>
                   {tab.count}
                 </span>
@@ -127,26 +130,36 @@ export default function AdminVerifikasiPage() {
           ))}
         </div>
 
-        <div style={{ minWidth: '260px' }}>
+        {/* Apple Spotlight Search */}
+        <div style={{ position: 'relative', width: '280px' }}>
+          <i className="bx bx-search" style={{
+            position: 'absolute',
+            left: '12px',
+            top: '50%',
+            transform: 'translateY(-50%)',
+            color: 'var(--apple-text-tertiary)',
+            fontSize: '18px',
+          }} />
           <input
             type="text"
-            className="form-control"
+            className="apple-search-input"
             placeholder="Cari nama, email, telp..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            style={{ padding: '8px 14px' }}
+            style={{ width: '100%', paddingLeft: '38px' }}
           />
         </div>
       </div>
 
-      <div className="card">
+      {/* Table Card */}
+      <div className="apple-card" style={{ padding: '0', overflow: 'hidden' }}>
         <div className="table-responsive">
           <table className="table-modern">
             <thead>
               <tr>
                 <th style={{ width: '60px' }}>No</th>
                 <th>Identitas Anggota</th>
-                <th>Kontak &amp; Alamat</th>
+                <th>Kontak &amp; WhatsApp</th>
                 <th style={{ width: '130px' }}>Scan KTM</th>
                 <th style={{ width: '130px' }}>Tgl Daftar</th>
                 <th style={{ width: '140px' }}>Status Akun</th>
@@ -156,9 +169,25 @@ export default function AdminVerifikasiPage() {
             <tbody>
               {currentList.length === 0 ? (
                 <tr>
-                  <td colSpan={7} style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
-                    <i className="bx bx-user-x" style={{ fontSize: '36px', display: 'block', marginBottom: '8px', color: 'var(--text-light)' }}></i>
-                    Tidak ada anggota pada tab ini.
+                  <td colSpan={7} style={{ textAlign: 'center', padding: '56px 20px', color: 'var(--apple-text-secondary)' }}>
+                    <div style={{
+                      width: '48px',
+                      height: '48px',
+                      borderRadius: '12px',
+                      background: 'var(--apple-bg-base)',
+                      border: '1px solid var(--apple-separator)',
+                      color: 'var(--apple-text-tertiary)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      margin: '0 auto 12px',
+                      fontSize: '24px',
+                    }}>
+                      <i className="bx bx-user-x" />
+                    </div>
+                    <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--apple-text-primary)' }}>
+                      Tidak ada data anggota pada kategori ini.
+                    </div>
                   </td>
                 </tr>
               ) : (
@@ -168,63 +197,66 @@ export default function AdminVerifikasiPage() {
 
                   return (
                     <tr key={row.id_anggota}>
-                      <td>{idx + 1}</td>
+                      <td style={{ color: 'var(--apple-text-tertiary)', fontSize: '12px', fontFamily: 'monospace' }}>
+                        {(idx + 1).toString().padStart(2, '0')}
+                      </td>
 
                       <td>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
                             src={row.foto || '/profile-default.svg'}
                             alt=""
-                            style={{ width: '38px', height: '38px', borderRadius: 'var(--radius-full)', objectFit: 'cover', border: '1px solid var(--card-border)' }}
+                            style={{ width: '38px', height: '38px', borderRadius: '50%', objectFit: 'cover', border: '1px solid var(--apple-separator)' }}
                             onError={(e) => {
                               (e.target as HTMLImageElement).src = '/profile-default.svg';
                             }}
                           />
                           <div>
-                            <strong style={{ color: '#0f172a', fontSize: '13.5px', display: 'block' }}>
+                            <div style={{ color: 'var(--apple-text-primary)', fontSize: '13.5px', fontWeight: 600 }}>
                               {row.nama}
-                            </strong>
-                            <span style={{ fontSize: '11.5px', color: 'var(--text-muted)' }}>
+                            </div>
+                            <div style={{ fontSize: '11.5px', color: 'var(--apple-text-tertiary)', marginTop: '1px' }}>
                               @{userAccount?.username || 'user'} &bull; {row.sex === 'L' ? 'Laki-laki' : 'Perempuan'}
-                            </span>
+                            </div>
                           </div>
                         </div>
                       </td>
 
                       <td>
-                        <div style={{ fontSize: '12.5px' }}>{row.email || '-'}</div>
-                        <div style={{ fontSize: '11.5px', color: 'var(--text-muted)' }}>WA: {row.telp || '-'}</div>
+                        <div style={{ fontSize: '12.5px', color: 'var(--apple-text-primary)' }}>{row.email || '-'}</div>
+                        <div style={{ fontSize: '11.5px', color: 'var(--apple-text-secondary)', marginTop: '2px' }}>WA: {row.telp || '-'}</div>
                       </td>
 
                       <td>
                         {row.ktm_foto ? (
                           <button
+                            type="button"
                             onClick={() => setSelectedKtm({ url: row.ktm_foto!, nama: row.nama })}
-                            className="btn btn-secondary btn-sm"
-                            style={{ gap: '4px', padding: '4px 8px', fontSize: '11.5px' }}
+                            className="apple-btn-secondary"
+                            style={{ gap: '4px', padding: '5px 10px', fontSize: '11.5px' }}
                           >
-                            <i className="bx bx-image"></i> Lihat KTM
+                            <i className="bx bx-image" /> Lihat KTM
                           </button>
                         ) : (
-                          <span style={{ color: 'var(--text-muted)', fontSize: '12px', fontStyle: 'italic' }}>Tanpa KTM</span>
+                          <span style={{ color: 'var(--apple-text-tertiary)', fontSize: '12px', fontStyle: 'italic' }}>Tanpa KTM</span>
                         )}
                       </td>
 
-                      <td>{row.tgl_entry}</td>
+                      <td style={{ fontSize: '12.5px', color: 'var(--apple-text-secondary)' }}>{row.tgl_entry}</td>
 
                       <td>
                         {row.status_verifikasi === 'TERVERIFIKASI' && (
-                          <span className="badge badge-success"><i className="bx bx-check"></i> Terverifikasi</span>
+                          <span className="badge badge-success"><i className="bx bx-check" /> Terverifikasi</span>
                         )}
                         {row.status_verifikasi === 'PENDING' && (
-                          <span className="badge badge-warning"><i className="bx bx-time"></i> Menunggu</span>
+                          <span className="badge badge-warning"><i className="bx bx-time" /> Menunggu</span>
                         )}
                         {row.status_verifikasi === 'DITOLAK' && (
-                          <span className="badge badge-danger"><i className="bx bx-x"></i> Ditolak</span>
+                          <span className="badge badge-danger"><i className="bx bx-x" /> Ditolak</span>
                         )}
                         {isBanned && (
-                          <span className="badge badge-danger" style={{ display: 'block', marginTop: '4px' }}>BANNED</span>
+                          <span className="badge badge-danger" style={{ display: 'inline-block', marginTop: '4px' }}>BANNED</span>
                         )}
                       </td>
 
@@ -233,24 +265,29 @@ export default function AdminVerifikasiPage() {
                           {row.status_verifikasi === 'PENDING' && (
                             <>
                               <button
+                                type="button"
                                 onClick={() => handleApprove(row.id_anggota, row.nama)}
-                                className="btn btn-success btn-sm"
+                                className="apple-btn-primary"
+                                style={{ background: '#34c759', padding: '5px 10px', fontSize: '11.5px' }}
                                 title="ACC Verifikasi"
                               >
-                                <i className="bx bx-check"></i> ACC
+                                <i className="bx bx-check" /> ACC
                               </button>
                               <button
+                                type="button"
                                 onClick={() => setRejectModal({ idAnggota: row.id_anggota, nama: row.nama })}
-                                className="btn btn-danger btn-sm"
+                                className="apple-btn-secondary"
+                                style={{ color: '#ff3b30', borderColor: 'rgba(255, 59, 48, 0.3)', padding: '5px 10px', fontSize: '11.5px' }}
                                 title="Tolak Pendaftaran"
                               >
-                                <i className="bx bx-x"></i> Tolak
+                                <i className="bx bx-x" /> Tolak
                               </button>
                             </>
                           )}
 
                           {userAccount && (
                             <button
+                              type="button"
                               onClick={() => {
                                 if (isBanned) {
                                   unbanUser(userAccount.id);
@@ -260,11 +297,16 @@ export default function AdminVerifikasiPage() {
                                   }
                                 }
                               }}
-                              className={`btn btn-sm ${isBanned ? 'btn-secondary' : 'btn-danger'}`}
-                              style={{ padding: '4px 8px' }}
+                              className="apple-btn-secondary"
+                              style={{
+                                padding: '5px 9px',
+                                fontSize: '12px',
+                                color: isBanned ? '#34c759' : '#ff3b30',
+                                borderColor: isBanned ? 'rgba(52,199,89,0.3)' : 'rgba(255,59,48,0.3)',
+                              }}
                               title={isBanned ? 'Buka Blokir (Unban)' : 'Blokir Akun (Ban)'}
                             >
-                              <i className={`bx ${isBanned ? 'bx-lock-open' : 'bx-block'}`}></i>
+                              <i className={`bx ${isBanned ? 'bx-lock-open' : 'bx-block'}`} />
                             </button>
                           )}
                         </div>
@@ -278,7 +320,7 @@ export default function AdminVerifikasiPage() {
         </div>
       </div>
 
-      {/* Modal Lihat KTM */}
+      {/* Modal Lihat KTM - Apple Sheet */}
       {selectedKtm && (
         <div style={{
           position: 'fixed',
@@ -286,36 +328,43 @@ export default function AdminVerifikasiPage() {
           left: 0,
           right: 0,
           bottom: 0,
-          background: 'rgba(15, 23, 42, 0.7)',
-          backdropFilter: 'blur(4px)',
+          background: 'rgba(0, 0, 0, 0.45)',
+          backdropFilter: 'blur(20px) saturate(180%)',
+          WebkitBackdropFilter: 'blur(20px) saturate(180%)',
           zIndex: 99999,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          padding: '20px'
+          padding: '24px',
+          animation: 'fadeIn 0.2s ease',
         }}>
-          <div className="card" style={{ maxWidth: '540px', width: '100%', padding: '24px' }}>
+          <div className="apple-card" style={{ maxWidth: '540px', width: '100%', padding: '24px', boxShadow: '0 24px 48px rgba(0,0,0,0.2)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h3 style={{ fontSize: '16px', fontWeight: 700, margin: 0 }}>
+              <h3 style={{ fontSize: '16px', fontWeight: 700, margin: 0, color: 'var(--apple-text-primary)' }}>
                 Scan KTM: {selectedKtm.nama}
               </h3>
-              <button onClick={() => setSelectedKtm(null)} className="btn btn-secondary btn-sm" style={{ padding: '2px 8px' }}>
-                <i className="bx bx-x" style={{ fontSize: '18px' }}></i>
+              <button
+                type="button"
+                onClick={() => setSelectedKtm(null)}
+                className="apple-btn-secondary"
+                style={{ padding: '4px 8px', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              >
+                <i className="bx bx-x" style={{ fontSize: '18px' }} />
               </button>
             </div>
-            <div style={{ background: '#f8fafc', borderRadius: 'var(--radius-md)', padding: '8px', textAlign: 'center' }}>
+            <div style={{ background: 'var(--apple-bg-base)', borderRadius: '14px', padding: '12px', textAlign: 'center', border: '1px solid var(--apple-separator)' }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={selectedKtm.url}
                 alt="KTM"
-                style={{ maxHeight: '60vh', maxWidth: '100%', objectFit: 'contain', borderRadius: '8px' }}
+                style={{ maxHeight: '60vh', maxWidth: '100%', objectFit: 'contain', borderRadius: '10px' }}
               />
             </div>
           </div>
         </div>
       )}
 
-      {/* Modal Tolak */}
+      {/* Modal Tolak - Apple Sheet */}
       {rejectModal && (
         <div style={{
           position: 'fixed',
@@ -323,34 +372,48 @@ export default function AdminVerifikasiPage() {
           left: 0,
           right: 0,
           bottom: 0,
-          background: 'rgba(15, 23, 42, 0.75)',
-          backdropFilter: 'blur(4px)',
+          background: 'rgba(0, 0, 0, 0.45)',
+          backdropFilter: 'blur(20px) saturate(180%)',
+          WebkitBackdropFilter: 'blur(20px) saturate(180%)',
           zIndex: 99999,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          padding: '20px'
+          padding: '24px',
+          animation: 'fadeIn 0.2s ease',
         }}>
-          <div className="card" style={{ maxWidth: '440px', width: '100%', padding: '24px' }}>
-            <h3 style={{ fontSize: '16px', fontWeight: 700, margin: '0 0 12px' }}>
+          <div className="apple-card" style={{ maxWidth: '440px', width: '100%', padding: '24px', boxShadow: '0 24px 48px rgba(0,0,0,0.2)' }}>
+            <h3 style={{ fontSize: '17px', fontWeight: 700, margin: '0 0 8px', color: 'var(--apple-text-primary)' }}>
               Tolak Pendaftaran Anggota
             </h3>
-            <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '16px' }}>
-              Anggota: <strong>{rejectModal.nama}</strong>
+            <p style={{ fontSize: '13px', color: 'var(--apple-text-secondary)', marginBottom: '16px' }}>
+              Calon Anggota: <strong style={{ color: 'var(--apple-text-primary)' }}>{rejectModal.nama}</strong>
             </p>
-            <div className="form-group">
-              <label className="form-label">Alasan Penolakan</label>
+            <div className="form-group" style={{ marginBottom: '20px' }}>
+              <label className="form-label" style={{ fontSize: '12px', fontWeight: 600, color: 'var(--apple-text-secondary)', marginBottom: '6px', display: 'block' }}>
+                Alasan Penolakan
+              </label>
               <textarea
-                className="form-control"
+                className="apple-search-input"
+                style={{ width: '100%', minHeight: '80px', borderRadius: '12px', resize: 'vertical' }}
                 value={rejectReason}
                 onChange={(e) => setRejectReason(e.target.value)}
               />
             </div>
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '20px' }}>
-              <button onClick={() => setRejectModal(null)} className="btn btn-secondary">
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+              <button
+                type="button"
+                onClick={() => setRejectModal(null)}
+                className="apple-btn-secondary"
+              >
                 Batal
               </button>
-              <button onClick={handleConfirmReject} className="btn btn-danger">
+              <button
+                type="button"
+                onClick={handleConfirmReject}
+                className="apple-btn-primary"
+                style={{ background: '#ff3b30' }}
+              >
                 Tolak Pendaftaran
               </button>
             </div>

@@ -9,12 +9,18 @@ import { useData } from '@/lib/dataContext';
 interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
+  onOpen?: () => void;
 }
 
-export default function Sidebar({ isOpen, onClose }: SidebarProps) {
+export default function Sidebar({ isOpen, onClose, onOpen }: SidebarProps) {
   const pathname = usePathname();
   const { currentUser, currentAnggota, isAdmin, isMember, logout } = useAuth();
-  const { peminjaman, anggota } = useData();
+  const { peminjaman, anggota, config } = useData();
+
+  const todayStr = new Date().toISOString().split('T')[0];
+  const overdueCount = peminjaman.filter(
+    (p) => p.status === 'DIPINJAM' && p.tgl_kembali && p.tgl_kembali < todayStr
+  ).length;
 
   const pendingCirculations = peminjaman.filter(
     (p) => p.status === 'MENUNGGU_ACC' || p.status === 'MENUNGGU_KEMBALI'
@@ -28,26 +34,43 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
 
   return (
     <>
+      {/* Left Edge Hover Trigger */}
       <div
         className="sidebar-edge-trigger"
-        aria-label="Tampilkan sidebar"
+        aria-label="Tampilkan sidebar (Panah Kiri)"
+        title="Geser kursor ke kiri atau tekan Panah Kiri [←] untuk buka menu"
+        onClick={onOpen}
+        onMouseEnter={onOpen}
       />
-      {/* Mobile Backdrop Overlay */}
+      {/* Backdrop Overlay */}
       <div 
         className={`sidebar-overlay ${isOpen ? 'active' : ''}`}
         onClick={onClose}
       />
 
-      <aside className={`app-sidebar ${isOpen ? 'show' : ''}`} id="appSidebar">
-        {/* Brand Header */}
+      <aside
+        className={`app-sidebar ${isOpen ? 'show' : ''}`}
+        id="appSidebar"
+        onMouseEnter={() => {
+          if (onOpen) onOpen();
+        }}
+        onMouseLeave={() => {
+          onClose();
+        }}
+      >
+        {/* Brand Header: PustakaScan */}
         <div className="sidebar-brand">
           <div className="brand-wrapper">
-            <div className="brand-icon">
-              <i className="bx bxs-book-reader"></i>
+            <div className="brand-icon" style={{ background: 'var(--apple-accent)', color: '#ffffff', borderRadius: '12px', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              {config.logoInstansi ? (
+                <img src={config.logoInstansi} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+              ) : (
+                <i className="bx bx-barcode-reader" style={{ fontSize: '22px' }}></i>
+              )}
             </div>
             <div className="brand-info">
-              <h2>Pustaka Polinela</h2>
-              <p>Politeknik Negeri Lampung</p>
+              <h2 style={{ letterSpacing: '-0.02em', fontWeight: 800 }}>{config.namaAplikasi || 'PustakaScan'}</h2>
+              <p style={{ fontSize: '11px', color: 'var(--apple-text-secondary)' }}>{config.namaInstansi || 'Perpustakaan Digital'}</p>
             </div>
           </div>
           <button className="sidebar-close-btn" onClick={onClose} title="Tutup Menu">
@@ -59,82 +82,111 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         <div className="sidebar-scroll">
           {isAdmin ? (
             <>
-              {/* Admin Navigation */}
+              {/* Pantauan & Kasir Utama */}
+              <div className="nav-section-title">Pantauan &amp; Kasir Utama</div>
               <ul className="nav-list">
                 <li className={`nav-item ${isActive('/admin/dashboard') ? 'active' : ''}`}>
-                  <Link href="/admin/dashboard" onClick={onClose}>
+                  <Link
+                    href={overdueCount > 0 ? '/admin/dashboard?view=monitor&tab=OVERDUE' : '/admin/dashboard'}
+                    onClick={onClose}
+                    style={{ display: 'flex', alignItems: 'center' }}
+                  >
                     <i className="bx bx-grid-alt"></i>
-                    <span>Dashboard</span>
-                  </Link>
-                </li>
-              </ul>
-
-              <ul className="nav-list">
-                <li className="nav-item">
-                  <Link href="/admin/buku?view=stock" onClick={onClose}>
-                    <i className="bx bx-layer"></i>
-                    <span>Kelola Stok</span>
-                  </Link>
-                </li>
-              </ul>
-
-              <ul className="nav-list">
-                <li className={`nav-item ${isActive('/admin/sirkulasi') ? 'active' : ''}`}>
-                  <Link href="/admin/sirkulasi" onClick={onClose}>
-                    <i className="bx bx-check-shield"></i>
-                    <span>
-                      Panel ACC Pinjam/Kembali
-                      {pendingCirculations > 0 && (
-                        <span style={{
-                          background: '#ef4444',
-                          color: '#fff',
-                          padding: '1px 7px',
-                          borderRadius: '99px',
-                          fontSize: '10px',
-                          marginLeft: '6px',
-                          fontWeight: 700
-                        }}>
-                          {pendingCirculations}
-                        </span>
-                      )}
-                    </span>
-                  </Link>
-                </li>
-              </ul>
-
-              <ul className="nav-list">
-                <li className={`nav-item ${isActive('/admin/verifikasi') ? 'active' : ''}`}>
-                  <Link href="/admin/verifikasi" onClick={onClose}>
-                    <i className="bx bx-user-check"></i>
-                    <span>
-                      Kelola Pengguna
-                      {pendingVerifications > 0 && (
-                        <span style={{
-                          background: '#f59e0b',
-                          color: '#000',
+                    <span style={{ flex: 1, fontWeight: 700 }}>Dashboard Pantauan</span>
+                    {overdueCount > 0 ? (
+                      <span
+                        style={{
+                          background: isActive('/admin/dashboard') ? '#ffffff' : 'var(--apple-danger-fill)',
+                          color: isActive('/admin/dashboard') ? 'var(--apple-accent)' : '#fff',
+                          padding: '2px 8px',
+                          borderRadius: 'var(--apple-radius-pill)',
+                          fontSize: '11px',
                           fontWeight: 700,
-                          padding: '1px 7px',
-                          borderRadius: '99px',
-                          fontSize: '10px',
-                          marginLeft: '6px'
-                        }}>
-                          {pendingVerifications}
-                        </span>
-                      )}
-                    </span>
+                          lineHeight: 1,
+                        }}
+                        title={`${overdueCount} Buku Telat. Klik untuk buka daftar peminjam terlambat.`}
+                      >
+                        {overdueCount} Telat
+                      </span>
+                    ) : null}
+                  </Link>
+                </li>
+                <li className={`nav-item ${isActive('/admin/sirkulasi') ? 'active' : ''}`}>
+                  <Link
+                    href={pendingCirculations > 0 ? '/admin/sirkulasi?tab=riwayat&sub=pending' : '/admin/sirkulasi'}
+                    onClick={onClose}
+                    style={{ display: 'flex', alignItems: 'center' }}
+                  >
+                    <i className="bx bx-store-alt"></i>
+                    <span style={{ flex: 1, fontWeight: 600 }}>Mode Kasir</span>
+                    {pendingCirculations > 0 && (
+                      <span
+                        style={{
+                          background: isActive('/admin/sirkulasi') ? '#ffffff' : 'var(--apple-warning-fill)',
+                          color: isActive('/admin/sirkulasi') ? 'var(--apple-accent)' : '#fff',
+                          padding: '2px 8px',
+                          borderRadius: 'var(--apple-radius-pill)',
+                          fontSize: '11px',
+                          fontWeight: 700,
+                          lineHeight: 1,
+                        }}
+                        title={`${pendingCirculations} Pengajuan Sirkulasi Online. Klik untuk buka antrean.`}
+                      >
+                        {pendingCirculations}
+                      </span>
+                    )}
+                  </Link>
+                </li>
+                <li className={`nav-item ${isActive('/admin/scanner-test') ? 'active' : ''}`}>
+                  <Link href="/admin/scanner-test" onClick={onClose}>
+                    <i className="bx bx-barcode"></i>
+                    <span>Diagnostik Scanner</span>
                   </Link>
                 </li>
               </ul>
 
+              <div className="nav-section-title">Koleksi &amp; Master Data</div>
+              <ul className="nav-list">
+                <li className={`nav-item ${isActive('/admin/buku') ? 'active' : ''}`}>
+                  <Link href="/admin/buku" onClick={onClose}>
+                    <i className="bx bx-book-bookmark"></i>
+                    <span>Koleksi &amp; Barcode</span>
+                  </Link>
+                </li>
+                <li className={`nav-item ${isActive('/admin/verifikasi') ? 'active' : ''}`}>
+                  <Link href="/admin/verifikasi" onClick={onClose} style={{ display: 'flex', alignItems: 'center' }}>
+                    <i className="bx bx-user-check"></i>
+                    <span style={{ flex: 1 }}>Verifikasi Anggota</span>
+                    {pendingVerifications > 0 && (
+                      <span
+                        style={{
+                          background: 'var(--apple-warning-fill)',
+                          color: '#fff',
+                          padding: '2px 8px',
+                          borderRadius: 'var(--apple-radius-pill)',
+                          fontSize: '11px',
+                          fontWeight: 700,
+                          lineHeight: 1,
+                        }}
+                      >
+                        {pendingVerifications}
+                      </span>
+                    )}
+                  </Link>
+                </li>
+              </ul>
+
+              <div className="nav-section-title">Pengaturan Sistem</div>
               <ul className="nav-list">
                 <li className={`nav-item ${isActive('/admin/master') ? 'active' : ''}`}>
                   <Link href="/admin/master?section=config" onClick={onClose}>
                     <i className="bx bx-slider-alt"></i>
-                    <span>Konfigurasi Denda</span>
+                    <span>Aturan Denda &amp; Pinjam</span>
                   </Link>
                 </li>
                 <li className="nav-item">
-                  <button className="sidebar-logout-button"
+                  <button
+                    className="sidebar-logout-button"
                     onClick={() => {
                       if (confirm('Apakah Anda yakin ingin keluar (logout)?')) {
                         logout();
@@ -151,30 +203,33 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
           ) : isMember ? (
             <>
               {/* Member Navigation */}
+              <div className="nav-section-title">Aktivitas Saya</div>
               <ul className="nav-list">
                 <li className={`nav-item ${isActive('/') ? 'active' : ''}`}>
                   <Link href="/" onClick={onClose}>
                     <i className="bx bx-grid-alt"></i>
-                    <span>Beranda</span>
+                    <span>Beranda Utama</span>
                   </Link>
                 </li>
                 <li className={`nav-item ${isActive('/member/dashboard') ? 'active' : ''}`}>
                   <Link href="/member/dashboard" onClick={onClose}>
                     <i className="bx bx-id-card"></i>
-                    <span>Kartu Anggota</span>
+                    <span>Kartu Anggota Digital</span>
                   </Link>
                 </li>
                 <li className={`nav-item ${isActive('/katalog') ? 'active' : ''}`}>
                   <Link href="/katalog" onClick={onClose}>
                     <i className="bx bx-library"></i>
-                    <span>Katalog Buku</span>
+                    <span>Katalog Koleksi (OPAC)</span>
                   </Link>
                 </li>
               </ul>
 
+              <div className="nav-section-title">Akun</div>
               <ul className="nav-list">
                 <li className="nav-item">
-                  <button className="sidebar-logout-button"
+                  <button
+                    className="sidebar-logout-button"
                     onClick={() => {
                       if (confirm('Apakah Anda yakin ingin keluar (logout)?')) {
                         logout();
@@ -191,6 +246,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
           ) : (
             <>
               {/* Public / Guest Navigation */}
+              <div className="nav-section-title">Layanan Publik</div>
               <ul className="nav-list">
                 <li className={`nav-item ${isActive('/') ? 'active' : ''}`}>
                   <Link href="/" onClick={onClose}>
@@ -198,51 +254,27 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                     <span>Beranda Utama</span>
                   </Link>
                 </li>
-              </ul>
-
-              <ul className="nav-list">
+                <li className={`nav-item ${isActive('/katalog') ? 'active' : ''}`}>
+                  <Link href="/katalog" onClick={onClose}>
+                    <i className="bx bx-search-alt"></i>
+                    <span>Katalog Terbuka (OPAC)</span>
+                  </Link>
+                </li>
                 <li className={`nav-item ${isActive('/login') ? 'active' : ''}`}>
                   <Link href="/login" onClick={onClose}>
                     <i className="bx bx-log-in-circle"></i>
-                    <span>Masuk (Login)</span>
+                    <span>Masuk (Petugas / Anggota)</span>
                   </Link>
                 </li>
                 <li className={`nav-item ${isActive('/register') ? 'active' : ''}`}>
                   <Link href="/register" onClick={onClose}>
                     <i className="bx bx-user-plus"></i>
-                    <span>Daftar Anggota</span>
+                    <span>Pendaftaran Anggota</span>
                   </Link>
                 </li>
               </ul>
             </>
           )}
-        </div>
-
-        {/* Sidebar User Footer */}
-        <div className="sidebar-user">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={currentAnggota?.foto || '/profile-default.svg'}
-            alt="Avatar"
-            className="user-avatar"
-            onError={(e) => {
-              (e.target as HTMLImageElement).src = '/profile-default.svg';
-            }}
-          />
-          <div className="user-meta">
-            <div className="name">
-              {currentAnggota?.nama || (currentUser ? currentUser.username : 'Tamu / Pengunjung')}
-            </div>
-            {currentUser ? (
-              isAdmin ? (
-                <span className="role-badge badge-adm">Administrator</span>
-              ) : (
-                <span className="role-badge badge-ang">Anggota</span>
-              )
-            ) : (
-              <span className="role-badge badge-guest">Tamu</span>
-            )}
-          </div>
         </div>
       </aside>
     </>
